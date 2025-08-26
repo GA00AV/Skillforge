@@ -1,0 +1,82 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User{
+  id String @id @default(uuid())
+  name String
+  email String @unique
+  password String
+  profileImg String @default("https://picsum.photos/200")
+  github String?
+  twitter String?
+  linkedin String?
+  bio String?
+  website String?
+  reviews Review[]
+  notifications Notification[]
+  enrolledCourses Course[] @relation("enrollments")
+  createdCourses Course[] @relation("instructor")
+}
+model Course{
+  id String @id @default(uuid())
+  title String
+  description String
+  catergory String
+  thumbnail String
+  lastUpdate DateTime
+  price Float
+  status String
+  reviews Review[]
+  sections Sections[]
+  students User[] @relation("enrollments")
+  instructorId String
+  instructor User @relation("instructor", fields: [instructorId], references: [id])
+}
+model Review{
+  id String @id @default(uuid())
+  rating Float
+  review String?
+  course Course @relation(fields: [courseId], references: [id])
+  courseId String
+  studentID String
+  student User @relation(fields: [studentID], references: [id])
+}
+model Sections{
+  id String @id @default(uuid())
+  title String
+  courseId String
+  course Course @relation(fields: [courseId], references: [id])
+  lectures Lecture[]
+}
+model Lecture {
+  id String @id @default(uuid())
+  title String 
+  duration Int
+  src String
+  description String
+  sectionID String
+  section Sections @relation(fields: [sectionID], references: [id])
+}
+
+model Notification{
+  id String @id @default(uuid())
+  title String 
+  type String
+  message String
+  sentTime DateTime
+  userId String
+  user User @relation(fields: [userId], references: [id])
+}

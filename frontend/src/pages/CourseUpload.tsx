@@ -1,0 +1,686 @@
+import { useState } from "react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import {
+  Plus,
+  Trash2,
+  ChevronDown,
+  Video,
+  Save,
+  BookIcon as Publish,
+} from "lucide-react";
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@/components/ui/collapsible";
+import { Label } from "@/components/ui/label";
+import { Progress } from "@/components/ui/progress";
+// import { useToast } from "@/hooks/use-toast"
+
+interface Lecture {
+  id: string;
+  title: string;
+  description: string;
+  videoUrl: string;
+  resources: { id: string; name: string; url: string }[];
+  uploadProgress: number;
+  resourceUploadProgress: { [key: string]: number };
+}
+
+interface Section {
+  id: string;
+  title: string;
+  lectures: Lecture[];
+}
+
+export default function UploadCoursePage() {
+  //   const { toast } = useToast()
+  const [courseTitle, setCourseTitle] = useState("");
+  const [courseDescription, setCourseDescription] = useState("");
+  const [courseCategory, setCourseCategory] = useState("");
+  const [coursePrice, setCoursePrice] = useState("");
+  const [courseImage, setCourseImage] = useState<File | null>(null);
+  const [sections, setSections] = useState<Section[]>([]);
+  const [isPaid, setIsPaid] = useState(true);
+  const [activeTab, setActiveTab] = useState("details");
+
+  const handleAddSection = () => {
+    setSections([
+      ...sections,
+      {
+        id: Date.now().toString(),
+        title: `New Section ${sections.length + 1}`,
+        lectures: [],
+      },
+    ]);
+  };
+
+  const handleDeleteSection = (sectionId: string) => {
+    setSections(sections.filter((section) => section.id !== sectionId));
+  };
+
+  const handleAddLecture = (sectionId: string) => {
+    setSections(
+      sections.map((section) =>
+        section.id === sectionId
+          ? {
+              ...section,
+              lectures: [
+                ...section.lectures,
+                {
+                  id: Date.now().toString(),
+                  title: `New Lecture ${section.lectures.length + 1}`,
+                  description: "",
+                  videoUrl: "",
+                  resources: [],
+                  uploadProgress: 0,
+                  resourceUploadProgress: {},
+                },
+              ],
+            }
+          : section
+      )
+    );
+  };
+
+  const handleDeleteLecture = (sectionId: string, lectureId: string) => {
+    setSections(
+      sections.map((section) =>
+        section.id === sectionId
+          ? {
+              ...section,
+              lectures: section.lectures.filter(
+                (lecture) => lecture.id !== lectureId
+              ),
+            }
+          : section
+      )
+    );
+  };
+
+  const handleLectureChange = (
+    sectionId: string,
+    lectureId: string,
+    field: keyof Lecture,
+    value: any
+  ) => {
+    setSections(
+      sections.map((section) =>
+        section.id === sectionId
+          ? {
+              ...section,
+              lectures: section.lectures.map((lecture) =>
+                lecture.id === lectureId
+                  ? { ...lecture, [field]: value }
+                  : lecture
+              ),
+            }
+          : section
+      )
+    );
+  };
+
+  const handleVideoUpload = (
+    sectionId: string,
+    lectureId: string,
+    file: File
+  ) => {
+    const lectureToUpdate = sections
+      .find((s) => s.id === sectionId)
+      ?.lectures.find((l) => l.id === lectureId);
+    if (!lectureToUpdate) return;
+
+    // Simulate upload progress
+    let progress = 0;
+    const interval = setInterval(() => {
+      progress += 10;
+      if (progress <= 100) {
+        handleLectureChange(sectionId, lectureId, "uploadProgress", progress);
+      } else {
+        clearInterval(interval);
+        handleLectureChange(
+          sectionId,
+          lectureId,
+          "videoUrl",
+          URL.createObjectURL(file)
+        );
+        // toast({
+        //   title: "Video Uploaded!",
+        //   description: `${file.name} has been successfully uploaded.`,
+        // })
+      }
+    }, 100);
+  };
+
+  const handleResourceUpload = (
+    sectionId: string,
+    lectureId: string,
+    file: File
+  ) => {
+    const lectureToUpdate = sections
+      .find((s) => s.id === sectionId)
+      ?.lectures.find((l) => l.id === lectureId);
+    if (!lectureToUpdate) return;
+
+    const resourceId = Date.now().toString();
+    let progress = 0;
+    const interval = setInterval(() => {
+      progress += 10;
+      if (progress <= 100) {
+        setSections((prevSections) =>
+          prevSections.map((s) =>
+            s.id === sectionId
+              ? {
+                  ...s,
+                  lectures: s.lectures.map((l) =>
+                    l.id === lectureId
+                      ? {
+                          ...l,
+                          resourceUploadProgress: {
+                            ...l.resourceUploadProgress,
+                            [resourceId]: progress,
+                          },
+                        }
+                      : l
+                  ),
+                }
+              : s
+          )
+        );
+      } else {
+        clearInterval(interval);
+        setSections((prevSections) =>
+          prevSections.map((s) =>
+            s.id === sectionId
+              ? {
+                  ...s,
+                  lectures: s.lectures.map((l) =>
+                    l.id === lectureId
+                      ? {
+                          ...l,
+                          resources: [
+                            ...l.resources,
+                            {
+                              id: resourceId,
+                              name: file.name,
+                              url: URL.createObjectURL(file),
+                            },
+                          ],
+                          resourceUploadProgress: {
+                            ...l.resourceUploadProgress,
+                            [resourceId]: 100, // Mark as complete
+                          },
+                        }
+                      : l
+                  ),
+                }
+              : s
+          )
+        );
+        // toast({
+        //   title: "Resource Uploaded!",
+        //   description: `${file.name} has been successfully uploaded.`,
+        // })
+      }
+    }, 100);
+  };
+
+  const handleRemoveResource = (
+    sectionId: string,
+    lectureId: string,
+    resourceId: string
+  ) => {
+    setSections(
+      sections.map((section) =>
+        section.id === sectionId
+          ? {
+              ...section,
+              lectures: section.lectures.map((lecture) =>
+                lecture.id === lectureId
+                  ? {
+                      ...lecture,
+                      resources: lecture.resources.filter(
+                        (res) => res.id !== resourceId
+                      ),
+                    }
+                  : lecture
+              ),
+            }
+          : section
+      )
+    );
+  };
+
+  const handleSaveDraft = () => {
+    console.log("Saving draft:", {
+      courseTitle,
+      courseDescription,
+      courseCategory,
+      coursePrice,
+      courseImage,
+      sections,
+    });
+    // toast({
+    //   title: "Draft Saved!",
+    //   description: "Your course progress has been saved.",
+    // })
+  };
+
+  const handlePublishCourse = () => {
+    if (
+      !courseTitle ||
+      !courseDescription ||
+      !courseCategory ||
+      (isPaid && !coursePrice) ||
+      !courseImage ||
+      sections.length === 0
+    ) {
+      //   toast({
+      //     title: "Missing Information",
+      //     description: "Please fill in all required course details and add at least one section.",
+      //     variant: "destructive",
+      //   })
+      return;
+    }
+    console.log("Publishing course:", {
+      courseTitle,
+      courseDescription,
+      courseCategory,
+      coursePrice,
+      courseImage,
+      sections,
+    });
+    // toast({
+    //   title: "Course Published!",
+    //   description: "Your course is now live and available to students.",
+    // })
+    // Reset form or redirect
+    setCourseTitle("");
+    setCourseDescription("");
+    setCourseCategory("");
+    setCoursePrice("");
+    setCourseImage(null);
+    setSections([]);
+    setIsPaid(true);
+    setActiveTab("details");
+  };
+
+  return (
+    <div className="p-6 space-y-6">
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-3xl font-bold text-gray-900">
+            Create New Course
+          </h1>
+          <p className="text-gray-600 mt-2">
+            Fill in the details to create your online course.
+          </p>
+        </div>
+        <div className="flex gap-2">
+          <Button variant="outline" onClick={handleSaveDraft}>
+            <Save className="w-4 h-4 mr-2" />
+            Save Draft
+          </Button>
+          <Button
+            onClick={handlePublishCourse}
+            className="bg-gray-900 hover:bg-gray-800 text-white"
+          >
+            <Publish className="w-4 h-4 mr-2" />
+            Publish Course
+          </Button>
+        </div>
+      </div>
+
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+        <TabsList className="grid w-full grid-cols-3">
+          <TabsTrigger value="details">Course Details</TabsTrigger>
+          <TabsTrigger value="curriculum">Curriculum</TabsTrigger>
+          <TabsTrigger value="pricing">Pricing</TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="details" className="space-y-6">
+          <Card className="border-gray-200">
+            <CardHeader>
+              <CardTitle className="text-lg text-gray-900">
+                Basic Information
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div>
+                <Label htmlFor="courseTitle" className="pb-2">
+                  Course Title
+                </Label>
+                <Input
+                  id="courseTitle"
+                  placeholder="e.g., Master JavaScript in 30 Days"
+                  value={courseTitle}
+                  onChange={(e) => setCourseTitle(e.target.value)}
+                />
+              </div>
+              <div>
+                <Label htmlFor="courseDescription" className="pb-2">
+                  Course Description
+                </Label>
+                <Textarea
+                  id="courseDescription"
+                  placeholder="Provide a detailed description of your course content and what students will learn."
+                  value={courseDescription}
+                  onChange={(e) => setCourseDescription(e.target.value)}
+                  rows={6}
+                />
+              </div>
+              <div>
+                <Label htmlFor="courseCategory" className="pb-2">
+                  Category
+                </Label>
+                <Select
+                  value={courseCategory}
+                  onValueChange={setCourseCategory}
+                >
+                  <SelectTrigger className="w-full">
+                    <SelectValue placeholder="Select a category" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="development">Development</SelectItem>
+                    <SelectItem value="design">Design</SelectItem>
+                    <SelectItem value="marketing">Marketing</SelectItem>
+                    <SelectItem value="business">Business</SelectItem>
+                    <SelectItem value="photography">Photography</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
+                <Label htmlFor="courseImage" className="pb-2">
+                  Course Thumbnail Image
+                </Label>
+                <Input
+                  id="courseImage"
+                  type="file"
+                  accept="image/*"
+                  onChange={(e) =>
+                    setCourseImage(e.target.files ? e.target.files[0] : null)
+                  }
+                />
+                {courseImage && (
+                  <img
+                    src={URL.createObjectURL(courseImage) || "/placeholder.svg"}
+                    alt="Course Thumbnail"
+                    className="mt-4 w-48 h-auto object-cover rounded-md"
+                  />
+                )}
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="curriculum" className="space-y-6">
+          <Card className="border-gray-200">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-lg text-gray-900">
+                Course Curriculum
+              </CardTitle>
+              <Button onClick={handleAddSection} size="sm">
+                <Plus className="w-4 h-4 mr-2" />
+                Add Section
+              </Button>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              {sections.length === 0 && (
+                <div className="text-center text-gray-500 py-8">
+                  No sections added yet. Click "Add Section" to get started.
+                </div>
+              )}
+              {sections.map((section, sectionIndex) => (
+                <Collapsible
+                  key={section.id}
+                  className="border rounded-md p-4 bg-gray-50"
+                >
+                  <div className="flex items-center justify-between">
+                    <Input
+                      value={section.title}
+                      onChange={(e) =>
+                        setSections(
+                          sections.map((s) =>
+                            s.id === section.id
+                              ? { ...s, title: e.target.value }
+                              : s
+                          )
+                        )
+                      }
+                      className="flex-1 mr-4 bg-white"
+                      placeholder={`Section ${sectionIndex + 1} Title`}
+                    />
+                    <CollapsibleTrigger asChild>
+                      <Button variant="ghost" size="icon">
+                        {/* Placeholder for expand/collapse icon */}
+                        <ChevronDown className="h-4 w-4 collapsible-icon" />
+                        <span className="sr-only">Toggle Section</span>
+                      </Button>
+                    </CollapsibleTrigger>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => handleDeleteSection(section.id)}
+                    >
+                      <Trash2 className="h-4 w-4 text-red-500" />
+                      <span className="sr-only">Delete Section</span>
+                    </Button>
+                  </div>
+                  <CollapsibleContent className="mt-4 space-y-4">
+                    {section.lectures.map((lecture, lectureIndex) => (
+                      <Card key={lecture.id} className="border-gray-200 p-4">
+                        <div className="flex items-center justify-between mb-3">
+                          <h4 className="font-medium text-gray-900">
+                            Lecture {lectureIndex + 1}
+                          </h4>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() =>
+                              handleDeleteLecture(section.id, lecture.id)
+                            }
+                          >
+                            <Trash2 className="h-4 w-4 text-red-500" />
+                            <span className="sr-only">Delete Lecture</span>
+                          </Button>
+                        </div>
+                        <div className="space-y-3">
+                          <div>
+                            <Label
+                              htmlFor={`lectureTitle-${lecture.id}`}
+                              className="pb-2"
+                            >
+                              Lecture Title
+                            </Label>
+                            <Input
+                              id={`lectureTitle-${lecture.id}`}
+                              value={lecture.title}
+                              onChange={(e) =>
+                                handleLectureChange(
+                                  section.id,
+                                  lecture.id,
+                                  "title",
+                                  e.target.value
+                                )
+                              }
+                              placeholder="e.g., Introduction to JavaScript"
+                            />
+                          </div>
+                          <div>
+                            <Label
+                              htmlFor={`lectureDescription-${lecture.id}`}
+                              className="pb-2"
+                            >
+                              Lecture Description
+                            </Label>
+                            <Textarea
+                              id={`lectureDescription-${lecture.id}`}
+                              value={lecture.description}
+                              onChange={(e) =>
+                                handleLectureChange(
+                                  section.id,
+                                  lecture.id,
+                                  "description",
+                                  e.target.value
+                                )
+                              }
+                              placeholder="Briefly describe this lecture's content."
+                              rows={3}
+                            />
+                          </div>
+                          <div>
+                            <Label
+                              htmlFor={`videoUpload-${lecture.id}`}
+                              className="pb-2"
+                            >
+                              Video File
+                            </Label>
+                            <Input
+                              id={`videoUpload-${lecture.id}`}
+                              type="file"
+                              accept="video/*"
+                              onChange={(e) =>
+                                e.target.files &&
+                                handleVideoUpload(
+                                  section.id,
+                                  lecture.id,
+                                  e.target.files[0]
+                                )
+                              }
+                            />
+                            {lecture.uploadProgress > 0 &&
+                              lecture.uploadProgress < 100 && (
+                                <Progress
+                                  value={lecture.uploadProgress}
+                                  className="mt-2 h-2"
+                                />
+                              )}
+                            {lecture.videoUrl &&
+                              lecture.uploadProgress === 100 && (
+                                <div className="flex items-center gap-2 mt-2 text-sm text-green-600">
+                                  <Video className="w-4 h-4" />
+                                  Video uploaded:{" "}
+                                  {lecture.videoUrl.substring(0, 30)}...
+                                </div>
+                              )}
+                          </div>
+                          {/* <div> */}
+                          {/* <Label
+                              htmlFor={`resourcesUpload-${lecture.id}`}
+                              className="pb-2"
+                            >
+                              Downloadable Resources
+                            </Label> */}
+                          {/* <Input
+                              id={`resourcesUpload-${lecture.id}`}
+                              type="file"
+                              multiple
+                              onChange={(e) => {
+                                if (e.target.files) {
+                                  Array.from(e.target.files).forEach((file) =>
+                                    handleResourceUpload(
+                                      section.id,
+                                      lecture.id,
+                                      file
+                                    )
+                                  );
+                                }
+                              }}
+                            /> */}
+                          {/* <div className="mt-2 space-y-1">
+                              {lecture.resources.map((resource) => (
+                                <div
+                                  key={resource.id}
+                                  className="flex items-center justify-between text-sm text-gray-700"
+                                >
+                                  <div className="flex items-center gap-2">
+                                    <FileText className="w-4 h-4" />
+                                    <span>{resource.name}</span>
+                                    {lecture.resourceUploadProgress[
+                                      resource.id
+                                    ] < 100 && (
+                                      <Progress
+                                        value={
+                                          lecture.resourceUploadProgress[
+                                            resource.id
+                                          ]
+                                        }
+                                        className="w-24 h-2"
+                                      />
+                                    )}
+                                  </div>
+                                  <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    onClick={() =>
+                                      handleRemoveResource(
+                                        section.id,
+                                        lecture.id,
+                                        resource.id
+                                      )
+                                    }
+                                  >
+                                    <Trash2 className="w-4 h-4 text-red-500" />
+                                  </Button>
+                                </div>
+                              ))}
+                            </div> */}
+                          {/* </div> */}
+                        </div>
+                      </Card>
+                    ))}
+                    <Button
+                      onClick={() => handleAddLecture(section.id)}
+                      variant="outline"
+                      className="w-full mt-4"
+                    >
+                      <Plus className="w-4 h-4 mr-2" />
+                      Add Lecture
+                    </Button>
+                  </CollapsibleContent>
+                </Collapsible>
+              ))}
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="pricing" className="space-y-6">
+          <Card className="border-gray-200">
+            <CardHeader>
+              <CardTitle className="text-lg text-gray-900">
+                Pricing Options
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div>
+                <Label htmlFor="coursePrice" className="pb-2">
+                  Course Price ($)
+                </Label>
+                <Input
+                  id="coursePrice"
+                  type="number"
+                  placeholder="e.g., 49.99"
+                  value={coursePrice}
+                  onChange={(e) => setCoursePrice(e.target.value)}
+                  min="0"
+                  step="0.01"
+                />
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+      </Tabs>
+    </div>
+  );
+}
