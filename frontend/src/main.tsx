@@ -19,7 +19,6 @@ import MyCoursesPage from "./pages/MyCourse.tsx";
 import CourseAnalyticsPage from "./pages/CourseAnalytics.tsx";
 import UploadCoursePage from "./pages/CourseUpload.tsx";
 import MessagePage from "./pages/Message.tsx";
-
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
     <BrowserRouter>

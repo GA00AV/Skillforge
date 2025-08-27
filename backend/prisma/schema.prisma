@@ -6,7 +6,6 @@
 
 generator client {
   provider = "prisma-client-js"
-  output   = "../src/generated/prisma"
 }
 
 datasource db {
@@ -20,11 +19,6 @@ model User{
   email String @unique
   password String
   profileImg String @default("https://picsum.photos/200")
-  github String?
-  twitter String?
-  linkedin String?
-  bio String?
-  website String?
   reviews Review[]
   notifications Notification[]
   enrolledCourses Course[] @relation("enrollments")
