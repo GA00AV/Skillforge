@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, type FormEvent } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -11,18 +11,52 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { AlertCircle } from "lucide-react";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { Link, redirect, useNavigate } from "react-router";
+
+async function submitLogin(data: any) {
+  let response = await fetch("http://localhost:3000/login", {
+    method: "POST",
+    body: JSON.stringify(data),
+    headers: {
+      "Content-Type": "application/json",
+    },
+    credentials: "include",
+  });
+  if (!response.ok && response.status !== 400) {
+    throw Error(response.statusText);
+  }
+  return response.json();
+}
 
 export default function LoginPage() {
-  const [errors, setErrors] = useState<
-    Record<string, string | undefined | boolean>
-  >({});
+  let queryclient = useQueryClient();
+  let mutation = useMutation({
+    mutationFn: (data: any) => submitLogin(data),
+    onSuccess(data, _variables, _context) {
+      queryclient.invalidateQueries({ queryKey: ["User"] });
+      if (!data.errors) {
+        navigate("/");
+      }
+    },
+  });
+  let navigate = useNavigate();
+  function handleFormSubmit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    const formdata = new FormData(event.currentTarget);
+    mutation.mutate({
+      email: formdata.get("email"),
+      password: formdata.get("password"),
+    });
+  }
+  const errors = mutation.data?.errors;
 
   return (
     <div className="min-h-screen bg-gray-50 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-md w-full">
         <div className="text-center mb-8">
-          <a
-            href="/"
+          <Link
+            to="/"
             className="flex items-center justify-center space-x-2 mb-6"
           >
             <div className="w-10 h-10 bg-gray-900 rounded-lg flex items-center justify-center">
@@ -31,7 +65,7 @@ export default function LoginPage() {
             <span className="text-2xl font-bold text-gray-900">
               Skill Forge
             </span>
-          </a>
+          </Link>
           <h2 className="text-3xl font-bold text-gray-900">Welcome back</h2>
           <p className="text-gray-600 mt-2">
             Sign in to your account to continue learning
@@ -46,7 +80,7 @@ export default function LoginPage() {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <form className="space-y-4">
+            <form className="space-y-4" onSubmit={handleFormSubmit}>
               <div className="space-y-2">
                 <Label htmlFor="email" className="text-gray-700">
                   Email
@@ -59,12 +93,15 @@ export default function LoginPage() {
                   className="border-gray-300 focus:border-gray-500"
                   required
                 />
-                {errors["email"] && (
-                  <div className="flex items-center space-x-1 text-red-600">
-                    <AlertCircle className="h-3 w-3" />
-                    <span className="text-xs">{errors["email"]}</span>
-                  </div>
-                )}
+                {errors &&
+                  (errors.email ? (
+                    <div className="flex items-center space-x-1 text-red-600">
+                      <AlertCircle className="h-3 w-3" />
+                      <span className="text-xs">{errors.email}</span>
+                    </div>
+                  ) : (
+                    ""
+                  ))}
               </div>
 
               <div className="space-y-2">
@@ -79,54 +116,35 @@ export default function LoginPage() {
                   className="border-gray-300 focus:border-gray-500 pr-10"
                   required
                 />
-                {errors["password"] && (
-                  <div className="flex items-center space-x-1 text-red-600">
-                    <AlertCircle className="h-3 w-3" />
-                    <span className="text-xs">{errors["password"]}</span>
-                  </div>
-                )}
+                {errors &&
+                  (errors.password ? (
+                    <div className="flex items-center space-x-1 text-red-600">
+                      <AlertCircle className="h-3 w-3" />
+                      <span className="text-xs">{errors.password}</span>
+                    </div>
+                  ) : (
+                    ""
+                  ))}
               </div>
-
-              {/* <div className="flex items-center justify-between">
-                <div className="flex items-center">
-                  <input
-                    id="remember-me"
-                    name="remember-me"
-                    type="checkbox"
-                    className="h-4 w-4 text-gray-900 focus:ring-gray-500 border-gray-300 rounded"
-                  />
-                  <label
-                    htmlFor="remember-me"
-                    className="ml-2 block text-sm text-gray-700"
-                  >
-                    Remember me
-                  </label>
-                </div>
-                <a
-                  href="/forgot-password"
-                  className="text-sm text-gray-600 hover:text-gray-900"
-                >
-                  Forgot password?
-                </a>
-              </div> */}
 
               <Button
                 type="submit"
+                disabled={mutation.isPending}
                 className="w-full bg-gray-900 hover:bg-gray-800 text-white"
               >
-                Sign In
+                {mutation.isPending ? "Signing In" : "Sign In"}
               </Button>
             </form>
           </CardContent>
           <CardFooter className="flex flex-col space-y-4">
             <div className="text-center text-sm text-gray-600">
               {"Don't have an account? "}
-              <a
-                href="/signup"
+              <Link
+                to="/signup"
                 className="text-gray-900 hover:underline font-medium"
               >
                 Sign up
-              </a>
+              </Link>
             </div>
           </CardFooter>
         </Card>

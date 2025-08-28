@@ -4,6 +4,7 @@ import { userLoginType, userSignupType } from "../types/types.js";
 import { prisma } from "../lib/prisma.js";
 import { compare, hash } from "bcrypt";
 import { randomUUID } from "crypto";
+import { AuthRequest } from "../middlewares.js";
 
 const authHandler = Router();
 
@@ -18,22 +19,35 @@ authHandler.post("/signup", async (req, res) => {
       result.error.issues.map((issue) => {
         errors[issue.path.join(".")] = issue.message;
       });
-      res.status(422);
+      res.status(400);
       return res.json({ errors });
+    }
+
+    if (result.data.confirmPassword !== result.data.password) {
+      res.status(400);
+      return res.json({
+        errors: { confirmPassword: "Passwords don't match!" },
+      });
     }
     // check if user already exist
     let data = await prisma.user.findUnique({
       where: { email: result.data.email },
     });
     if (data) {
-      res.status(422);
+      res.status(400);
       return res.json({
         errors: { email: "email already exists!" },
       });
     }
     // hash password and create user if not exist
     result.data.password = await hash(result.data.password, 10);
-    data = await prisma.user.create({ data: result.data });
+    data = await prisma.user.create({
+      data: {
+        name: result.data.name,
+        email: result.data.email,
+        password: result.data.password,
+      },
+    });
     // create session for user and store in redis
     let session = randomUUID();
     let userInfo = JSON.stringify({
@@ -46,10 +60,11 @@ authHandler.post("/signup", async (req, res) => {
     });
     // return success and session
     res.cookie("session_id", session, { maxAge: 1000 * expirationTime });
+    res.status(200);
     res.json({ success: true });
-  } catch {
-    res.status(500);
-    res.json({ serverError: true });
+  } catch (error) {
+    console.error(error);
+    res.sendStatus(500);
   }
 });
 
@@ -64,7 +79,7 @@ authHandler.post("/login", async (req, res) => {
       result.error.issues.map((issue) => {
         errors[issue.path.join(".")] = issue.message;
       });
-      res.status(422);
+      res.status(400);
       return res.json({ errors });
     }
     // validate user credentials
@@ -97,28 +112,28 @@ authHandler.post("/login", async (req, res) => {
       expiration: { type: "EX", value: expirationTime },
     });
     // return success and session
+    res.cookie("session_id", session, { maxAge: 1000 * expirationTime });
+    res.status(200);
     res.json({ success: true });
-  } catch {
-    res.status(500);
-    res.json({ serverError: true });
+  } catch (error) {
+    console.error(error);
+    res.sendStatus(500);
   }
 });
 
 //signout handler
-authHandler.post("/signout", async (req, res) => {
-  console.log(req.cookies);
-  res.send("wait");
-
-  // try {
-  //   let data = await redis.del(session);
-  //   console.log(data);
-  //   if (!data) {
-  //     return { error: "session doesn't exist!" };
-  //   }
-
-  //   return { success: true };
-  // } catch {
-  //   return { serverError: true };
-  // }
+authHandler.post("/signout", async (req: AuthRequest, res) => {
+  try {
+    const session = req.cookies["session_id"];
+    let data = await redis.del(session);
+    if (!data) {
+      return res.sendStatus(422);
+    }
+    res.clearCookie("session_id");
+    return res.json({ success: true });
+  } catch (error) {
+    console.error(error);
+    res.sendStatus(500);
+  }
 });
 export { authHandler };

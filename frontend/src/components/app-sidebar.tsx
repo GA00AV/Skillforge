@@ -3,7 +3,6 @@ import {
   Home,
   Settings,
   PlayCircle,
-  Wallet,
   MessageSquare,
   BotMessageSquareIcon,
 } from "lucide-react";
@@ -32,13 +31,11 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Link } from "react-router";
 import { useLocation } from "react-router";
+import { useUserContext } from "@/context/UserContext";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { logout } from "@/lib/utils";
 
-const data = {
-  user: {
-    name: "Alex Johnson",
-    email: "alex@skillforge.com",
-    avatar: "/placeholder.svg?height=32&width=32&text=AJ",
-  },
+const links = {
   navMain: [
     {
       title: "Dashboard",
@@ -81,6 +78,40 @@ const data = {
 
 export function AppSidebar() {
   const location = useLocation();
+  const userQuery = useUserContext();
+  const queryclient = useQueryClient();
+  const mutator = useMutation({
+    mutationFn: () => logout("http://localhost:3000/signout"),
+    onError: () => {
+      queryclient.invalidateQueries({ queryKey: ["User"] });
+    },
+    onSuccess: () => {
+      queryclient.invalidateQueries({ queryKey: ["User"] });
+    },
+  });
+  if (!userQuery.data) {
+    userQuery.refetch();
+  }
+  let user = {
+    name:
+      userQuery.isLoading || userQuery.isError
+        ? ""
+        : userQuery.data.user
+        ? userQuery.data.user.name
+        : "",
+    email:
+      userQuery.isLoading || userQuery.isError
+        ? ""
+        : userQuery.data.user
+        ? userQuery.data.user.email
+        : "",
+    profileImg:
+      userQuery.isLoading || userQuery.isError
+        ? ""
+        : userQuery.data.user
+        ? userQuery.data.user.profileImg
+        : "",
+  };
   return (
     <Sidebar variant="inset" collapsible="icon">
       <SidebarHeader>
@@ -88,13 +119,6 @@ export function AppSidebar() {
           <SidebarMenuItem>
             <SidebarMenuButton size="lg" asChild>
               <Link to="/">
-                {/* <div className="w-8 h-8 bg-gray-900 rounded-lg flex items-center justify-center"></div> */}
-                {/* <div>
-                  <span className="text-lg font-bold text-gray-900">
-                    Skill Forge
-                  </span>
-                  <p className="text-xs text-gray-500">Learning Dashboard</p>
-                </div> */}
                 <div className="flex aspect-square size-8 items-center justify-center rounded-lg bg-primary text-primary-foreground">
                   <span className="text-white font-bold text-sm">SF</span>
                 </div>
@@ -112,7 +136,7 @@ export function AppSidebar() {
           <SidebarGroupLabel>Student Section</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
-              {data.navMain.map((item) => {
+              {links.navMain.map((item) => {
                 let isActive = item.url === location.pathname;
                 return (
                   <SidebarMenuItem key={item.title}>
@@ -132,7 +156,7 @@ export function AppSidebar() {
           <SidebarGroupLabel>Instructor Tools</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
-              {data.instructor.map((item) => {
+              {links.instructor.map((item) => {
                 let isActive = item.url === location.pathname;
                 return (
                   <SidebarMenuItem key={item.title}>
@@ -152,7 +176,7 @@ export function AppSidebar() {
           <SidebarGroupLabel>Platform</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
-              {data.platform.map((item) => {
+              {links.platform.map((item) => {
                 let isActive = item.url === location.pathname;
                 return (
                   <SidebarMenuItem key={item.title}>
@@ -179,17 +203,12 @@ export function AppSidebar() {
                   className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
                 >
                   <Avatar className="h-8 w-8 rounded-lg">
-                    <AvatarImage
-                      src={data.user.avatar || "/placeholder.svg"}
-                      alt={data.user.name}
-                    />
+                    <AvatarImage src={user.profileImg} alt={user.name} />
                     <AvatarFallback className="rounded-lg">AJ</AvatarFallback>
                   </Avatar>
                   <div className="grid flex-1 text-left text-sm leading-tight">
-                    <span className="truncate font-semibold">
-                      {data.user.name}
-                    </span>
-                    <span className="truncate text-xs">{data.user.email}</span>
+                    <span className="truncate font-semibold">{user.name}</span>
+                    <span className="truncate text-xs">{user.email}</span>
                   </div>
                 </SidebarMenuButton>
               </DropdownMenuTrigger>
@@ -202,19 +221,14 @@ export function AppSidebar() {
                 <DropdownMenuLabel className="p-0 font-normal">
                   <div className="flex items-center gap-2 px-1 py-1.5 text-left text-sm">
                     <Avatar className="h-8 w-8 rounded-lg">
-                      <AvatarImage
-                        src={data.user.avatar || "/placeholder.svg"}
-                        alt={data.user.name}
-                      />
+                      <AvatarImage src={user.profileImg} alt={user.name} />
                       <AvatarFallback className="rounded-lg">AJ</AvatarFallback>
                     </Avatar>
                     <div className="grid flex-1 text-left text-sm leading-tight">
                       <span className="truncate font-semibold">
-                        {data.user.name}
+                        {user.name}
                       </span>
-                      <span className="truncate text-xs">
-                        {data.user.email}
-                      </span>
+                      <span className="truncate text-xs">{user.email}</span>
                     </div>
                   </div>
                 </DropdownMenuLabel>
@@ -225,7 +239,9 @@ export function AppSidebar() {
                 </DropdownMenuItem>
 
                 <DropdownMenuSeparator />
-                <DropdownMenuItem>Sign out</DropdownMenuItem>
+                <DropdownMenuItem onClick={() => mutator.mutate()}>
+                  Sign out
+                </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
           </SidebarMenuItem>

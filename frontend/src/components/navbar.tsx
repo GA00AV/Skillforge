@@ -20,23 +20,42 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { Link } from "react-router";
+import { useUserContext } from "@/context/UserContext";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { logout } from "@/lib/utils";
 
 export function Navbar() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  // let [user, setUser] = useState();
-  const isLoggedIn = true; // This would come from your auth state
+  const userQuery = useUserContext();
+  const queryclient = useQueryClient();
+  const mutator = useMutation({
+    mutationFn: () => logout("http://localhost:3000/signout"),
+    onError: () => {
+      queryclient.invalidateQueries({ queryKey: ["User"] });
+    },
+    onSuccess: () => {
+      queryclient.invalidateQueries({ queryKey: ["User"] });
+    },
+  });
+  const isLoggedIn =
+    userQuery.isLoading || userQuery.isError
+      ? false
+      : userQuery.data.user
+      ? true
+      : false;
 
   return (
     <nav className="border-b border-gray-200 bg-white sticky top-0 z-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
           {/* Logo */}
-          <a href="/" className="flex items-center space-x-2">
+          <Link to="/" className="flex items-center space-x-2">
             <div className="w-8 h-8 bg-gray-900 rounded-md flex items-center justify-center">
               <span className="text-white font-bold text-sm">SF</span>
             </div>
             <span className="text-xl font-bold text-gray-900">Skill Forge</span>
-          </a>
+          </Link>
 
           {/* Desktop Navigation */}
           <div className="hidden md:flex items-center space-x-6 flex-1 max-w-md mx-8">
@@ -63,28 +82,36 @@ export function Navbar() {
                   >
                     <Avatar className="h-8 w-8">
                       <AvatarImage
-                        src="/placeholder.svg?height=32&width=32"
-                        alt="User"
+                        src={isLoggedIn ? userQuery.data.user.profileImg : ""}
+                        alt={isLoggedIn ? userQuery.data.user.name : "user"}
                       />
-                      <AvatarFallback>JD</AvatarFallback>
+                      <AvatarFallback>
+                        {isLoggedIn ? userQuery.data.user.name : ""}
+                      </AvatarFallback>
                     </Avatar>
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent className="w-56" align="end" forceMount>
-                  <DropdownMenuItem>
-                    <User className="mr-2 h-4 w-4 text-gray-900" />
-                    <span>Profile</span>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem>
-                    <LayoutDashboardIcon className="mr-2 h-4 w-4 text-gray-900" />
-                    <span>Dashboard</span>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem>
-                    <BookCheckIcon className="mr-2 h-4 w-4 text-gray-900" />
-                    <span>My Learning</span>
-                  </DropdownMenuItem>
+                  <Link to="/app/profile">
+                    <DropdownMenuItem>
+                      <User className="mr-2 h-4 w-4 text-gray-900" />
+                      <span>Profile</span>
+                    </DropdownMenuItem>
+                  </Link>
+                  <Link to="/app/dashboard">
+                    <DropdownMenuItem>
+                      <LayoutDashboardIcon className="mr-2 h-4 w-4 text-gray-900" />
+                      <span>Dashboard</span>
+                    </DropdownMenuItem>
+                  </Link>
+                  <Link to="/app/learn">
+                    <DropdownMenuItem>
+                      <BookCheckIcon className="mr-2 h-4 w-4 text-gray-900" />
+                      <span>My Learning</span>
+                    </DropdownMenuItem>
+                  </Link>
                   <DropdownMenuSeparator />
-                  <DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => mutator.mutate()}>
                     <LogOutIcon className="mr-2 h-4 w-4 text-gray-900" />
                     <span>Logout</span>
                   </DropdownMenuItem>
@@ -92,19 +119,19 @@ export function Navbar() {
               </DropdownMenu>
             ) : (
               <div className="flex items-center space-x-3">
-                <a href="/login">
+                <Link to="/login">
                   <Button
                     variant="ghost"
                     className="text-gray-700 hover:text-gray-900"
                   >
                     Log in
                   </Button>
-                </a>
-                <a href="/signup">
+                </Link>
+                <Link to="/signup">
                   <Button className="bg-gray-900 hover:bg-gray-800 text-white">
                     Sign up
                   </Button>
-                </a>
+                </Link>
               </div>
             )}
           </div>
@@ -140,16 +167,16 @@ export function Navbar() {
 
               {!isLoggedIn && (
                 <div className="flex flex-col space-y-2">
-                  <a href="/login">
+                  <Link to="/login">
                     <Button variant="ghost" className="w-full justify-start">
                       Log in
                     </Button>
-                  </a>
-                  <a href="/signup">
+                  </Link>
+                  <Link to="/signup">
                     <Button className="w-full bg-gray-900 hover:bg-gray-800 text-white">
                       Sign up
                     </Button>
-                  </a>
+                  </Link>
                 </div>
               )}
             </div>

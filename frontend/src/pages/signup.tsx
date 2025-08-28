@@ -1,5 +1,3 @@
-"use client";
-import type React from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -12,19 +10,54 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { AlertCircle } from "lucide-react";
-import { useState } from "react";
+import { type FormEvent } from "react";
+import { Link, useNavigate } from "react-router";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+async function submitLogin(data: any) {
+  let response = await fetch("http://localhost:3000/signup", {
+    method: "POST",
+    body: JSON.stringify(data),
+    headers: {
+      "Content-Type": "application/json",
+    },
+    credentials: "include",
+  });
+  if (!response.ok && response.status !== 400) {
+    throw Error(response.statusText);
+  }
+  return response.json();
+}
 
 export default function SignupPage() {
-  const [errors, setErrors] = useState<
-    Record<string, string | undefined | boolean>
-  >({});
+  let queryclient = useQueryClient();
+  let mutation = useMutation({
+    mutationFn: (data: any) => submitLogin(data),
+    onSuccess(data, _variables, _context) {
+      queryclient.invalidateQueries({ queryKey: ["User"] });
+      if (!data.errors) {
+        navigate("/");
+      }
+    },
+  });
+  let navigate = useNavigate();
+  function handleFormSubmit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    const formdata = new FormData(event.currentTarget);
+    mutation.mutate({
+      name: `${formdata.get("firstName")} ${formdata.get("lastName")}`,
+      email: formdata.get("email"),
+      password: formdata.get("password"),
+      confirmPassword: formdata.get("confirmPassword"),
+    });
+  }
+  const errors = mutation.data?.errors;
 
   return (
     <div className="min-h-screen bg-gray-50 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-md w-full">
         <div className="text-center mb-8">
-          <a
-            href="/"
+          <Link
+            to="/"
             className="flex items-center justify-center space-x-2 mb-6"
           >
             <div className="w-10 h-10 bg-gray-900 rounded-lg flex items-center justify-center">
@@ -33,7 +66,7 @@ export default function SignupPage() {
             <span className="text-2xl font-bold text-gray-900">
               Skill Forge
             </span>
-          </a>
+          </Link>
           <h2 className="text-3xl font-bold text-gray-900">
             Create your account
           </h2>
@@ -50,7 +83,7 @@ export default function SignupPage() {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <form className="space-y-4">
+            <form className="space-y-4" onSubmit={handleFormSubmit}>
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="firstName" className="text-gray-700">
@@ -92,12 +125,15 @@ export default function SignupPage() {
                   className="border-gray-300 focus:border-gray-500"
                   required
                 />
-                {errors["email"] && (
-                  <div className="flex items-center space-x-1 text-red-600">
-                    <AlertCircle className="h-3 w-3" />
-                    <span className="text-xs">{errors["email"]}</span>
-                  </div>
-                )}
+                {errors &&
+                  (errors.email ? (
+                    <div className="flex items-center space-x-1 text-red-600">
+                      <AlertCircle className="h-3 w-3" />
+                      <span className="text-xs">{errors.email}</span>
+                    </div>
+                  ) : (
+                    ""
+                  ))}
               </div>
 
               <div className="space-y-2">
@@ -112,31 +148,37 @@ export default function SignupPage() {
                   className="border-gray-300 focus:border-gray-500 pr-10"
                   required
                 />
-                {errors["password"] && (
-                  <div className="flex items-center space-x-1 text-red-600">
-                    <AlertCircle className="h-3 w-3" />
-                    <span className="text-xs">{errors["password"]}</span>
-                  </div>
-                )}
+                {errors &&
+                  (errors.password ? (
+                    <div className="flex items-center space-x-1 text-red-600">
+                      <AlertCircle className="h-3 w-3" />
+                      <span className="text-xs">{errors.password}</span>
+                    </div>
+                  ) : (
+                    ""
+                  ))}
               </div>
               <div className="space-y-2">
                 <Label htmlFor="confirmPassword" className="text-gray-700">
                   Password
                 </Label>
                 <Input
-                  id="password"
+                  id="confirmPassword"
                   name="confirmPassword"
                   type="password"
                   placeholder="Create a password"
                   className="border-gray-300 focus:border-gray-500 pr-10"
                   required
                 />
-                {errors["confirmPassword"] && (
-                  <div className="flex items-center space-x-1 text-red-600">
-                    <AlertCircle className="h-3 w-3" />
-                    <span className="text-xs">{errors["confirmPassword"]}</span>
-                  </div>
-                )}
+                {errors &&
+                  (errors.confirmPassword ? (
+                    <div className="flex items-center space-x-1 text-red-600">
+                      <AlertCircle className="h-3 w-3" />
+                      <span className="text-xs">{errors.confirmPassword}</span>
+                    </div>
+                  ) : (
+                    ""
+                  ))}
               </div>
 
               <div className="flex items-center">
@@ -152,13 +194,13 @@ export default function SignupPage() {
                   className="ml-2 block text-sm text-gray-700"
                 >
                   I agree to the{" "}
-                  <a href="/terms" className="text-gray-900 hover:underline">
+                  <span className="text-gray-900 hover:underline">
                     Terms of Service
-                  </a>{" "}
+                  </span>{" "}
                   and{" "}
-                  <a href="/privacy" className="text-gray-900 hover:underline">
+                  <span className="text-gray-900 hover:underline">
                     Privacy Policy
-                  </a>
+                  </span>
                 </label>
               </div>
 
@@ -173,12 +215,12 @@ export default function SignupPage() {
           <CardFooter className="flex flex-col space-y-4">
             <div className="text-center text-sm text-gray-600">
               Already have an account?{" "}
-              <a
-                href="/login"
+              <Link
+                to="/login"
                 className="text-gray-900 hover:underline font-medium"
               >
                 Sign in
-              </a>
+              </Link>
             </div>
           </CardFooter>
         </Card>

@@ -4,7 +4,7 @@ import {
   SidebarTrigger,
 } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/app-sidebar";
-import { DashboardHeader } from "@/components/dashboard-header";
+import { DashboardHeader } from "@/components/layouts/dashboard-header";
 import { Separator } from "@radix-ui/react-separator";
 import { Outlet } from "react-router";
 
