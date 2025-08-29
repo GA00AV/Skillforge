@@ -26,12 +26,12 @@ model User{
 }
 model Course{
   id String @id @default(uuid())
-  title String
-  description String
-  catergory String
-  thumbnail String
-  lastUpdate DateTime
-  price Float
+  title String?
+  description String?
+  catergory String?
+  thumbnail String?
+  lastUpdate DateTime @updatedAt
+  price Float?
   status String
   reviews Review[]
   sections Sections[]

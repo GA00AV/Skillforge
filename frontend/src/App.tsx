@@ -1,5 +1,5 @@
 import { BrowserRouter, Route, Routes } from "react-router";
-import HomeLayout from "./components/HomeLayout.tsx";
+import HomeLayout from "./components/layouts/HomeLayout.tsx";
 import HomePage from "./pages/Home.tsx";
 import SearchPage from "./pages/Search.tsx";
 import CoursePage from "./pages/Course.tsx";

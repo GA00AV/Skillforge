@@ -180,7 +180,7 @@ export default function CoursePage() {
                 <CardContent className="px-6">
                   <div className="flex items-center gap-2 mb-4">
                     <span className="text-3xl font-bold text-gray-900">
-                      $200
+                      ₹200
                     </span>
                   </div>
 

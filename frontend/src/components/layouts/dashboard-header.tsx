@@ -6,7 +6,7 @@ import { Link } from "react-router";
 export function DashboardHeader() {
   return (
     <div className="flex flex-1 items-center justify-between">
-      <h1 className="text-lg font-semibold">Dashboard</h1>
+      <span />
 
       <div className="flex items-center gap-2">
         <div className="relative">

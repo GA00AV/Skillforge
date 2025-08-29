@@ -102,58 +102,6 @@ export default function CourseAnalyticsPage() {
           </Card>
         ))}
       </div>
-
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Enrollment Chart */}
-        <Card className="border-gray-200">
-          <CardHeader>
-            <CardTitle className="text-lg text-gray-900">
-              Student Enrollments
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <ResponsiveContainer width="100%" height={300}>
-              <LineChart data={enrollmentData}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="date" />
-                <YAxis />
-                <Tooltip />
-                <Line
-                  type="monotone"
-                  dataKey="students"
-                  stroke="#374151"
-                  strokeWidth={2}
-                />
-              </LineChart>
-            </ResponsiveContainer>
-          </CardContent>
-        </Card>
-
-        {/* Revenue Chart */}
-        <Card className="border-gray-200">
-          <CardHeader>
-            <CardTitle className="text-lg text-gray-900">
-              Revenue Growth
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <ResponsiveContainer width="100%" height={300}>
-              <LineChart data={revenueData}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="date" />
-                <YAxis />
-                <Tooltip formatter={(value) => [`$${value}`, "Revenue"]} />
-                <Line
-                  type="monotone"
-                  dataKey="revenue"
-                  stroke="#10B981"
-                  strokeWidth={2}
-                />
-              </LineChart>
-            </ResponsiveContainer>
-          </CardContent>
-        </Card>
-      </div>
     </div>
   );
 }

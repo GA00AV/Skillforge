@@ -11,14 +11,7 @@ import {
 } from "@/components/ui/select";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import {
-  Plus,
-  Trash2,
-  ChevronDown,
-  Video,
-  Save,
-  BookIcon as Publish,
-} from "lucide-react";
+import { Plus, Trash2, ChevronDown, Video } from "lucide-react";
 import {
   Collapsible,
   CollapsibleContent,
@@ -26,7 +19,6 @@ import {
 } from "@/components/ui/collapsible";
 import { Label } from "@/components/ui/label";
 import { Progress } from "@/components/ui/progress";
-// import { useToast } from "@/hooks/use-toast"
 
 interface Lecture {
   id: string;
@@ -45,15 +37,42 @@ interface Section {
 }
 
 export default function UploadCoursePage() {
-  //   const { toast } = useToast()
   const [courseTitle, setCourseTitle] = useState("");
   const [courseDescription, setCourseDescription] = useState("");
   const [courseCategory, setCourseCategory] = useState("");
   const [coursePrice, setCoursePrice] = useState("");
   const [courseImage, setCourseImage] = useState<File | null>(null);
   const [sections, setSections] = useState<Section[]>([]);
-  const [isPaid, setIsPaid] = useState(true);
-  const [activeTab, setActiveTab] = useState("details");
+  const [activeTab, setActiveTab] = useState(1);
+
+  // step validation
+  const isStepValid = () => {
+    if (activeTab === 1) {
+      return (
+        courseTitle.trim() !== "" &&
+        courseDescription.trim() !== "" &&
+        courseCategory.trim() !== "" &&
+        courseImage !== null
+      );
+    }
+    if (activeTab === 2) {
+      return (
+        sections.length > 0 &&
+        sections.every(
+          (s) =>
+            s.title.trim() !== "" &&
+            s.lectures.length > 0 &&
+            s.lectures.every((l) => {
+              return l.title.trim() !== "" && l.description.trim() !== "";
+            })
+        )
+      );
+    }
+    if (activeTab === 3) {
+      return coursePrice.trim() !== "" && Number(coursePrice) > 0;
+    }
+    return false;
+  };
 
   const handleAddSection = () => {
     setSections([
@@ -155,165 +174,8 @@ export default function UploadCoursePage() {
           "videoUrl",
           URL.createObjectURL(file)
         );
-        // toast({
-        //   title: "Video Uploaded!",
-        //   description: `${file.name} has been successfully uploaded.`,
-        // })
       }
     }, 100);
-  };
-
-  const handleResourceUpload = (
-    sectionId: string,
-    lectureId: string,
-    file: File
-  ) => {
-    const lectureToUpdate = sections
-      .find((s) => s.id === sectionId)
-      ?.lectures.find((l) => l.id === lectureId);
-    if (!lectureToUpdate) return;
-
-    const resourceId = Date.now().toString();
-    let progress = 0;
-    const interval = setInterval(() => {
-      progress += 10;
-      if (progress <= 100) {
-        setSections((prevSections) =>
-          prevSections.map((s) =>
-            s.id === sectionId
-              ? {
-                  ...s,
-                  lectures: s.lectures.map((l) =>
-                    l.id === lectureId
-                      ? {
-                          ...l,
-                          resourceUploadProgress: {
-                            ...l.resourceUploadProgress,
-                            [resourceId]: progress,
-                          },
-                        }
-                      : l
-                  ),
-                }
-              : s
-          )
-        );
-      } else {
-        clearInterval(interval);
-        setSections((prevSections) =>
-          prevSections.map((s) =>
-            s.id === sectionId
-              ? {
-                  ...s,
-                  lectures: s.lectures.map((l) =>
-                    l.id === lectureId
-                      ? {
-                          ...l,
-                          resources: [
-                            ...l.resources,
-                            {
-                              id: resourceId,
-                              name: file.name,
-                              url: URL.createObjectURL(file),
-                            },
-                          ],
-                          resourceUploadProgress: {
-                            ...l.resourceUploadProgress,
-                            [resourceId]: 100, // Mark as complete
-                          },
-                        }
-                      : l
-                  ),
-                }
-              : s
-          )
-        );
-        // toast({
-        //   title: "Resource Uploaded!",
-        //   description: `${file.name} has been successfully uploaded.`,
-        // })
-      }
-    }, 100);
-  };
-
-  const handleRemoveResource = (
-    sectionId: string,
-    lectureId: string,
-    resourceId: string
-  ) => {
-    setSections(
-      sections.map((section) =>
-        section.id === sectionId
-          ? {
-              ...section,
-              lectures: section.lectures.map((lecture) =>
-                lecture.id === lectureId
-                  ? {
-                      ...lecture,
-                      resources: lecture.resources.filter(
-                        (res) => res.id !== resourceId
-                      ),
-                    }
-                  : lecture
-              ),
-            }
-          : section
-      )
-    );
-  };
-
-  const handleSaveDraft = () => {
-    console.log("Saving draft:", {
-      courseTitle,
-      courseDescription,
-      courseCategory,
-      coursePrice,
-      courseImage,
-      sections,
-    });
-    // toast({
-    //   title: "Draft Saved!",
-    //   description: "Your course progress has been saved.",
-    // })
-  };
-
-  const handlePublishCourse = () => {
-    if (
-      !courseTitle ||
-      !courseDescription ||
-      !courseCategory ||
-      (isPaid && !coursePrice) ||
-      !courseImage ||
-      sections.length === 0
-    ) {
-      //   toast({
-      //     title: "Missing Information",
-      //     description: "Please fill in all required course details and add at least one section.",
-      //     variant: "destructive",
-      //   })
-      return;
-    }
-    console.log("Publishing course:", {
-      courseTitle,
-      courseDescription,
-      courseCategory,
-      coursePrice,
-      courseImage,
-      sections,
-    });
-    // toast({
-    //   title: "Course Published!",
-    //   description: "Your course is now live and available to students.",
-    // })
-    // Reset form or redirect
-    setCourseTitle("");
-    setCourseDescription("");
-    setCourseCategory("");
-    setCoursePrice("");
-    setCourseImage(null);
-    setSections([]);
-    setIsPaid(true);
-    setActiveTab("details");
   };
 
   return (
@@ -327,30 +189,17 @@ export default function UploadCoursePage() {
             Fill in the details to create your online course.
           </p>
         </div>
-        <div className="flex gap-2">
-          <Button variant="outline" onClick={handleSaveDraft}>
-            <Save className="w-4 h-4 mr-2" />
-            Save Draft
-          </Button>
-          <Button
-            onClick={handlePublishCourse}
-            className="bg-gray-900 hover:bg-gray-800 text-white"
-          >
-            <Publish className="w-4 h-4 mr-2" />
-            Publish Course
-          </Button>
-        </div>
       </div>
 
-      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+      <Tabs value={String(activeTab)} className="w-full">
         <TabsList className="grid w-full grid-cols-3">
-          <TabsTrigger value="details">Course Details</TabsTrigger>
-          <TabsTrigger value="curriculum">Curriculum</TabsTrigger>
-          <TabsTrigger value="pricing">Pricing</TabsTrigger>
+          <TabsTrigger value="1">Course Details</TabsTrigger>
+          <TabsTrigger value="2">Curriculum</TabsTrigger>
+          <TabsTrigger value="3">Pricing</TabsTrigger>
         </TabsList>
-
-        <TabsContent value="details" className="space-y-6">
-          <Card className="border-gray-200">
+        <Card className="border-gray-200">
+          {/* Step 1 */}
+          <TabsContent value="1" className="space-y-6">
             <CardHeader>
               <CardTitle className="text-lg text-gray-900">
                 Basic Information
@@ -362,6 +211,7 @@ export default function UploadCoursePage() {
                   Course Title
                 </Label>
                 <Input
+                  required
                   id="courseTitle"
                   placeholder="e.g., Master JavaScript in 30 Days"
                   value={courseTitle}
@@ -373,8 +223,9 @@ export default function UploadCoursePage() {
                   Course Description
                 </Label>
                 <Textarea
+                  required
                   id="courseDescription"
-                  placeholder="Provide a detailed description of your course content and what students will learn."
+                  placeholder="Provide a detailed description..."
                   value={courseDescription}
                   onChange={(e) => setCourseDescription(e.target.value)}
                   rows={6}
@@ -385,6 +236,7 @@ export default function UploadCoursePage() {
                   Category
                 </Label>
                 <Select
+                  required
                   value={courseCategory}
                   onValueChange={setCourseCategory}
                 >
@@ -405,6 +257,7 @@ export default function UploadCoursePage() {
                   Course Thumbnail Image
                 </Label>
                 <Input
+                  required
                   id="courseImage"
                   type="file"
                   accept="image/*"
@@ -414,19 +267,18 @@ export default function UploadCoursePage() {
                 />
                 {courseImage && (
                   <img
-                    src={URL.createObjectURL(courseImage) || "/placeholder.svg"}
+                    src={URL.createObjectURL(courseImage)}
                     alt="Course Thumbnail"
                     className="mt-4 w-48 h-auto object-cover rounded-md"
                   />
                 )}
               </div>
             </CardContent>
-          </Card>
-        </TabsContent>
+          </TabsContent>
 
-        <TabsContent value="curriculum" className="space-y-6">
-          <Card className="border-gray-200">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+          {/* Step 2 */}
+          <TabsContent value="2" className="space-y-6">
+            <CardHeader className="flex flex-row items-center justify-between">
               <CardTitle className="text-lg text-gray-900">
                 Course Curriculum
               </CardTitle>
@@ -463,9 +315,7 @@ export default function UploadCoursePage() {
                     />
                     <CollapsibleTrigger asChild>
                       <Button variant="ghost" size="icon">
-                        {/* Placeholder for expand/collapse icon */}
-                        <ChevronDown className="h-4 w-4 collapsible-icon" />
-                        <span className="sr-only">Toggle Section</span>
+                        <ChevronDown className="h-4 w-4" />
                       </Button>
                     </CollapsibleTrigger>
                     <Button
@@ -474,7 +324,6 @@ export default function UploadCoursePage() {
                       onClick={() => handleDeleteSection(section.id)}
                     >
                       <Trash2 className="h-4 w-4 text-red-500" />
-                      <span className="sr-only">Delete Section</span>
                     </Button>
                   </div>
                   <CollapsibleContent className="mt-4 space-y-4">
@@ -492,19 +341,12 @@ export default function UploadCoursePage() {
                             }
                           >
                             <Trash2 className="h-4 w-4 text-red-500" />
-                            <span className="sr-only">Delete Lecture</span>
                           </Button>
                         </div>
                         <div className="space-y-3">
                           <div>
-                            <Label
-                              htmlFor={`lectureTitle-${lecture.id}`}
-                              className="pb-2"
-                            >
-                              Lecture Title
-                            </Label>
+                            <Label className="pb-2">Lecture Title</Label>
                             <Input
-                              id={`lectureTitle-${lecture.id}`}
                               value={lecture.title}
                               onChange={(e) =>
                                 handleLectureChange(
@@ -518,14 +360,8 @@ export default function UploadCoursePage() {
                             />
                           </div>
                           <div>
-                            <Label
-                              htmlFor={`lectureDescription-${lecture.id}`}
-                              className="pb-2"
-                            >
-                              Lecture Description
-                            </Label>
+                            <Label className="pb-2">Lecture Description</Label>
                             <Textarea
-                              id={`lectureDescription-${lecture.id}`}
                               value={lecture.description}
                               onChange={(e) =>
                                 handleLectureChange(
@@ -535,19 +371,13 @@ export default function UploadCoursePage() {
                                   e.target.value
                                 )
                               }
-                              placeholder="Briefly describe this lecture's content."
+                              placeholder="Briefly describe this lecture."
                               rows={3}
                             />
                           </div>
                           <div>
-                            <Label
-                              htmlFor={`videoUpload-${lecture.id}`}
-                              className="pb-2"
-                            >
-                              Video File
-                            </Label>
+                            <Label className="pb-2">Video File</Label>
                             <Input
-                              id={`videoUpload-${lecture.id}`}
                               type="file"
                               accept="video/*"
                               onChange={(e) =>
@@ -570,73 +400,10 @@ export default function UploadCoursePage() {
                               lecture.uploadProgress === 100 && (
                                 <div className="flex items-center gap-2 mt-2 text-sm text-green-600">
                                   <Video className="w-4 h-4" />
-                                  Video uploaded:{" "}
-                                  {lecture.videoUrl.substring(0, 30)}...
+                                  Video uploaded!
                                 </div>
                               )}
                           </div>
-                          {/* <div> */}
-                          {/* <Label
-                              htmlFor={`resourcesUpload-${lecture.id}`}
-                              className="pb-2"
-                            >
-                              Downloadable Resources
-                            </Label> */}
-                          {/* <Input
-                              id={`resourcesUpload-${lecture.id}`}
-                              type="file"
-                              multiple
-                              onChange={(e) => {
-                                if (e.target.files) {
-                                  Array.from(e.target.files).forEach((file) =>
-                                    handleResourceUpload(
-                                      section.id,
-                                      lecture.id,
-                                      file
-                                    )
-                                  );
-                                }
-                              }}
-                            /> */}
-                          {/* <div className="mt-2 space-y-1">
-                              {lecture.resources.map((resource) => (
-                                <div
-                                  key={resource.id}
-                                  className="flex items-center justify-between text-sm text-gray-700"
-                                >
-                                  <div className="flex items-center gap-2">
-                                    <FileText className="w-4 h-4" />
-                                    <span>{resource.name}</span>
-                                    {lecture.resourceUploadProgress[
-                                      resource.id
-                                    ] < 100 && (
-                                      <Progress
-                                        value={
-                                          lecture.resourceUploadProgress[
-                                            resource.id
-                                          ]
-                                        }
-                                        className="w-24 h-2"
-                                      />
-                                    )}
-                                  </div>
-                                  <Button
-                                    variant="ghost"
-                                    size="sm"
-                                    onClick={() =>
-                                      handleRemoveResource(
-                                        section.id,
-                                        lecture.id,
-                                        resource.id
-                                      )
-                                    }
-                                  >
-                                    <Trash2 className="w-4 h-4 text-red-500" />
-                                  </Button>
-                                </div>
-                              ))}
-                            </div> */}
-                          {/* </div> */}
                         </div>
                       </Card>
                     ))}
@@ -652,11 +419,10 @@ export default function UploadCoursePage() {
                 </Collapsible>
               ))}
             </CardContent>
-          </Card>
-        </TabsContent>
+          </TabsContent>
 
-        <TabsContent value="pricing" className="space-y-6">
-          <Card className="border-gray-200">
+          {/* Step 3 */}
+          <TabsContent value="3" className="space-y-6">
             <CardHeader>
               <CardTitle className="text-lg text-gray-900">
                 Pricing Options
@@ -665,21 +431,55 @@ export default function UploadCoursePage() {
             <CardContent className="space-y-4">
               <div>
                 <Label htmlFor="coursePrice" className="pb-2">
-                  Course Price ($)
+                  Course Price (₹)
                 </Label>
                 <Input
                   id="coursePrice"
                   type="number"
-                  placeholder="e.g., 49.99"
+                  placeholder="e.g., 499"
+                  required
                   value={coursePrice}
                   onChange={(e) => setCoursePrice(e.target.value)}
                   min="0"
-                  step="0.01"
+                  step="1"
                 />
               </div>
             </CardContent>
-          </Card>
-        </TabsContent>
+          </TabsContent>
+
+          {/* Navigation */}
+          <div className="flex px-6 justify-between pb-6">
+            <Button
+              variant="outline"
+              onClick={() => setActiveTab(activeTab - 1)}
+              disabled={activeTab === 1}
+            >
+              Back
+            </Button>
+            <Button
+              className="bg-gray-900 hover:bg-gray-800 text-white"
+              type="button"
+              disabled={!isStepValid()}
+              onClick={
+                activeTab !== 3
+                  ? () => setActiveTab(activeTab + 1)
+                  : () => {
+                      alert("Course submitted successfully ✅");
+                      console.log({
+                        courseTitle,
+                        courseDescription,
+                        courseCategory,
+                        courseImage,
+                        sections,
+                        coursePrice,
+                      });
+                    }
+              }
+            >
+              {activeTab === 3 ? "Submit" : "Next"}
+            </Button>
+          </div>
+        </Card>
       </Tabs>
     </div>
   );
