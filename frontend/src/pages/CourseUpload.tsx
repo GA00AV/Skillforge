@@ -50,9 +50,10 @@ export default function UploadCoursePage() {
     if (activeTab === 1) {
       return (
         courseTitle.trim() !== "" &&
-        courseDescription.trim() !== "" &&
-        courseCategory.trim() !== "" &&
-        courseImage !== null
+          courseDescription.trim() !== "" &&
+          courseCategory.trim() !== "" &&
+          courseImage !== null,
+        coursePrice.trim() !== "" && Number(coursePrice) > 0
       );
     }
     if (activeTab === 2) {
@@ -67,9 +68,6 @@ export default function UploadCoursePage() {
             })
         )
       );
-    }
-    if (activeTab === 3) {
-      return coursePrice.trim() !== "" && Number(coursePrice) > 0;
     }
     return false;
   };
@@ -195,7 +193,6 @@ export default function UploadCoursePage() {
         <TabsList className="grid w-full grid-cols-3">
           <TabsTrigger value="1">Course Details</TabsTrigger>
           <TabsTrigger value="2">Curriculum</TabsTrigger>
-          <TabsTrigger value="3">Pricing</TabsTrigger>
         </TabsList>
         <Card className="border-gray-200">
           {/* Step 1 */}
@@ -213,6 +210,7 @@ export default function UploadCoursePage() {
                 <Input
                   required
                   id="courseTitle"
+                  name="title"
                   placeholder="e.g., Master JavaScript in 30 Days"
                   value={courseTitle}
                   onChange={(e) => setCourseTitle(e.target.value)}
@@ -224,6 +222,7 @@ export default function UploadCoursePage() {
                 </Label>
                 <Textarea
                   required
+                  name="description"
                   id="courseDescription"
                   placeholder="Provide a detailed description..."
                   value={courseDescription}
@@ -237,6 +236,7 @@ export default function UploadCoursePage() {
                 </Label>
                 <Select
                   required
+                  name="category"
                   value={courseCategory}
                   onValueChange={setCourseCategory}
                 >
@@ -253,11 +253,27 @@ export default function UploadCoursePage() {
                 </Select>
               </div>
               <div>
+                <Label htmlFor="coursePrice" className="pb-2">
+                  Course Price (₹)
+                </Label>
+                <Input
+                  id="coursePrice"
+                  type="number"
+                  placeholder="e.g., 499"
+                  required
+                  value={coursePrice}
+                  onChange={(e) => setCoursePrice(e.target.value)}
+                  min="0"
+                  step="1"
+                />
+              </div>
+              <div>
                 <Label htmlFor="courseImage" className="pb-2">
                   Course Thumbnail Image
                 </Label>
                 <Input
                   required
+                  name="thumbnail"
                   id="courseImage"
                   type="file"
                   accept="image/*"
@@ -421,32 +437,6 @@ export default function UploadCoursePage() {
             </CardContent>
           </TabsContent>
 
-          {/* Step 3 */}
-          <TabsContent value="3" className="space-y-6">
-            <CardHeader>
-              <CardTitle className="text-lg text-gray-900">
-                Pricing Options
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div>
-                <Label htmlFor="coursePrice" className="pb-2">
-                  Course Price (₹)
-                </Label>
-                <Input
-                  id="coursePrice"
-                  type="number"
-                  placeholder="e.g., 499"
-                  required
-                  value={coursePrice}
-                  onChange={(e) => setCoursePrice(e.target.value)}
-                  min="0"
-                  step="1"
-                />
-              </div>
-            </CardContent>
-          </TabsContent>
-
           {/* Navigation */}
           <div className="flex px-6 justify-between pb-6">
             <Button
@@ -461,7 +451,7 @@ export default function UploadCoursePage() {
               type="button"
               disabled={!isStepValid()}
               onClick={
-                activeTab !== 3
+                activeTab !== 2
                   ? () => setActiveTab(activeTab + 1)
                   : () => {
                       alert("Course submitted successfully ✅");
@@ -476,7 +466,7 @@ export default function UploadCoursePage() {
                     }
               }
             >
-              {activeTab === 3 ? "Submit" : "Next"}
+              {activeTab === 2 ? "Submit" : "Next"}
             </Button>
           </div>
         </Card>

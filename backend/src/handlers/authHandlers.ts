@@ -54,6 +54,7 @@ authHandler.post("/signup", async (req, res) => {
       name: data.name,
       email: data.email,
       profileImg: data.profileImg,
+      id: data.id,
     });
     redis.set(session, userInfo, {
       expiration: { type: "EX", value: expirationTime },
@@ -107,6 +108,7 @@ authHandler.post("/login", async (req, res) => {
       name: data.name,
       email: data.email,
       profileImg: data.profileImg,
+      id: data.id,
     });
     redis.set(session, userInfo, {
       expiration: { type: "EX", value: expirationTime },
