@@ -13,6 +13,7 @@ import { AlertCircle } from "lucide-react";
 import { type FormEvent } from "react";
 import { Link, useNavigate } from "react-router";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { toast } from "sonner";
 async function submitLogin(data: any) {
   let response = await fetch("http://localhost:3000/signup", {
     method: "POST",
@@ -51,6 +52,10 @@ export default function SignupPage() {
     });
   }
   const errors = mutation.data?.errors;
+
+  if (mutation.isError) {
+    toast(`Error: ${mutation.error.message}`);
+  }
 
   return (
     <div className="min-h-screen bg-gray-50 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">

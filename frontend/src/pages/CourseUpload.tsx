@@ -19,58 +19,50 @@ import {
 } from "@/components/ui/collapsible";
 import { Label } from "@/components/ui/label";
 import { Progress } from "@/components/ui/progress";
-
-interface Lecture {
-  id: string;
-  title: string;
-  description: string;
-  videoUrl: string;
-  resources: { id: string; name: string; url: string }[];
-  uploadProgress: number;
-  resourceUploadProgress: { [key: string]: number };
-}
-
-interface Section {
-  id: string;
-  title: string;
-  lectures: Lecture[];
-}
+import { useQuery } from "@tanstack/react-query";
+import { useParams } from "react-router";
+import { fetchCourseDetails } from "@/lib/utils";
+import { type Lecture, type Section } from "@/types/types";
+import { toast } from "sonner";
 
 export default function UploadCoursePage() {
-  const [courseTitle, setCourseTitle] = useState("");
-  const [courseDescription, setCourseDescription] = useState("");
-  const [courseCategory, setCourseCategory] = useState("");
-  const [coursePrice, setCoursePrice] = useState("");
-  const [courseImage, setCourseImage] = useState<File | null>(null);
   const [sections, setSections] = useState<Section[]>([]);
   const [activeTab, setActiveTab] = useState(1);
-
+  let params = useParams();
+  let courseQuery = useQuery({
+    queryKey: ["Course", params.courseid],
+    queryFn: () =>
+      fetchCourseDetails(
+        `http://localhost:3000/course/${params.courseid}/basic`,
+        params.courseid as string
+      ),
+  });
   // step validation
-  const isStepValid = () => {
-    if (activeTab === 1) {
-      return (
-        courseTitle.trim() !== "" &&
-          courseDescription.trim() !== "" &&
-          courseCategory.trim() !== "" &&
-          courseImage !== null,
-        coursePrice.trim() !== "" && Number(coursePrice) > 0
-      );
-    }
-    if (activeTab === 2) {
-      return (
-        sections.length > 0 &&
-        sections.every(
-          (s) =>
-            s.title.trim() !== "" &&
-            s.lectures.length > 0 &&
-            s.lectures.every((l) => {
-              return l.title.trim() !== "" && l.description.trim() !== "";
-            })
-        )
-      );
-    }
-    return false;
-  };
+  // const isStepValid = () => {
+  //   if (activeTab === 1) {
+  //     return (
+  //       courseTitle.trim() !== "" &&
+  //         courseDescription.trim() !== "" &&
+  //         courseCategory.trim() !== "" &&
+  //         courseImage !== null,
+  //       coursePrice.trim() !== "" && Number(coursePrice) > 0
+  //     );
+  //   }
+  //   if (activeTab === 2) {
+  //     return (
+  //       sections.length > 0 &&
+  //       sections.every(
+  //         (s) =>
+  //           s.title.trim() !== "" &&
+  //           s.lectures.length > 0 &&
+  //           s.lectures.every((l) => {
+  //             return l.title.trim() !== "" && l.description.trim() !== "";
+  //           })
+  //       )
+  //     );
+  //   }
+  //   return false;
+  // };
 
   const handleAddSection = () => {
     setSections([
@@ -175,7 +167,12 @@ export default function UploadCoursePage() {
       }
     }, 100);
   };
-
+  if (courseQuery.isLoading) {
+    return <p>Loading...</p>;
+  }
+  if (courseQuery.isError) {
+    toast(`Error: ${courseQuery.error.message}`);
+  }
   return (
     <div className="p-6 space-y-6">
       <div className="flex items-center justify-between">
@@ -209,11 +206,10 @@ export default function UploadCoursePage() {
                 </Label>
                 <Input
                   required
+                  defaultValue={courseQuery.data ? courseQuery.data.title : ""}
                   id="courseTitle"
                   name="title"
                   placeholder="e.g., Master JavaScript in 30 Days"
-                  value={courseTitle}
-                  onChange={(e) => setCourseTitle(e.target.value)}
                 />
               </div>
               <div>
@@ -225,8 +221,9 @@ export default function UploadCoursePage() {
                   name="description"
                   id="courseDescription"
                   placeholder="Provide a detailed description..."
-                  value={courseDescription}
-                  onChange={(e) => setCourseDescription(e.target.value)}
+                  defaultValue={
+                    courseQuery.data ? courseQuery.data.description : ""
+                  }
                   rows={6}
                 />
               </div>
@@ -237,8 +234,9 @@ export default function UploadCoursePage() {
                 <Select
                   required
                   name="category"
-                  value={courseCategory}
-                  onValueChange={setCourseCategory}
+                  defaultValue={
+                    courseQuery.data ? courseQuery.data.category : ""
+                  }
                 >
                   <SelectTrigger className="w-full">
                     <SelectValue placeholder="Select a category" />
@@ -259,10 +257,9 @@ export default function UploadCoursePage() {
                 <Input
                   id="coursePrice"
                   type="number"
+                  name="price"
                   placeholder="e.g., 499"
-                  required
-                  value={coursePrice}
-                  onChange={(e) => setCoursePrice(e.target.value)}
+                  defaultValue={courseQuery.data ? courseQuery.data.price : ""}
                   min="0"
                   step="1"
                 />
@@ -277,13 +274,14 @@ export default function UploadCoursePage() {
                   id="courseImage"
                   type="file"
                   accept="image/*"
-                  onChange={(e) =>
-                    setCourseImage(e.target.files ? e.target.files[0] : null)
-                  }
                 />
-                {courseImage && (
+                {courseQuery.data && (
                   <img
-                    src={URL.createObjectURL(courseImage)}
+                    src={
+                      courseQuery.data.thumbnail
+                        ? courseQuery.data.thumbnail
+                        : ""
+                    }
                     alt="Course Thumbnail"
                     className="mt-4 w-48 h-auto object-cover rounded-md"
                   />
@@ -449,20 +447,12 @@ export default function UploadCoursePage() {
             <Button
               className="bg-gray-900 hover:bg-gray-800 text-white"
               type="button"
-              disabled={!isStepValid()}
+              // disabled={!isStepValid()}
               onClick={
                 activeTab !== 2
                   ? () => setActiveTab(activeTab + 1)
                   : () => {
                       alert("Course submitted successfully ✅");
-                      console.log({
-                        courseTitle,
-                        courseDescription,
-                        courseCategory,
-                        courseImage,
-                        sections,
-                        coursePrice,
-                      });
                     }
               }
             >

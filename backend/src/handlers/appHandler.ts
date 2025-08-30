@@ -32,7 +32,7 @@ appHandler.post("/edit/:courseId/info", async (req: AuthRequest, res) => {
           title: courseInfo.data.title,
           description: courseInfo.data.description,
           price: courseInfo.data.price,
-          catergory: courseInfo.data.catergory,
+          catergory: courseInfo.data.category,
           status: "DRAFT",
           instructorId: req.user.id,
         },
@@ -51,7 +51,7 @@ appHandler.post("/edit/:courseId/info", async (req: AuthRequest, res) => {
         where: { id: course.id },
         data: {
           title: courseInfo.data.title,
-          catergory: courseInfo.data.catergory,
+          catergory: courseInfo.data.category,
           description: courseInfo.data.description,
           price: courseInfo.data.price,
         },

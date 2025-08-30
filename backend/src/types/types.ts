@@ -14,7 +14,7 @@ export const userLoginType = z.object({
 export const CourseBasicInfo = z.object({
   title: z.string(),
   description: z.string(),
-  catergory: z.string(),
+  category: z.string(),
   price: z.number(),
   thumbnail: z.boolean(),
 });

@@ -28,7 +28,7 @@ model Course{
   id String @id @default(uuid())
   title String?
   description String?
-  catergory String?
+  category String?
   thumbnail String?
   lastUpdate DateTime @updatedAt
   price Float?

@@ -2,7 +2,7 @@ import { Section, Lecture } from "@prisma/client";
 import { prisma } from "./prisma.js";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import { s3client } from "./s3Client.js";
-import { PutObjectCommand } from "@aws-sdk/client-s3";
+import { GetObjectCommand, PutObjectCommand } from "@aws-sdk/client-s3";
 import { LectureFromUser } from "../types/types.js";
 
 export async function getSections(courseid: string) {
@@ -75,4 +75,21 @@ export async function updateLecture(
     );
     return { url, lectureId: lectureFromUser.id };
   }
+}
+
+export async function getSignedUrlForThumbnail(
+  thumnail: string | null,
+  instructorId: string,
+  courseid: string
+) {
+  if (!thumnail) {
+    return null;
+  }
+  return await getSignedUrl(
+    s3client,
+    new GetObjectCommand({
+      Bucket: "production",
+      Key: `${instructorId}/${courseid}/thumnail.jpg`,
+    })
+  );
 }

@@ -21,6 +21,7 @@ import { useQuery } from "@tanstack/react-query";
 import { fetchUserDetails } from "./lib/utils.ts";
 import ProtectedRouteLayout from "./components/layouts/ProtectedRouteLayout.tsx";
 import LoggedOutRequiredLayout from "./components/layouts/LoggedOutRequiredLayout.tsx";
+import { Toaster } from "sonner";
 
 export default function App() {
   const userQuery = useQuery({
@@ -31,6 +32,7 @@ export default function App() {
   });
   return (
     <BrowserRouter>
+      <Toaster />
       <UserContext.Provider value={userQuery}>
         <Routes>
           <Route element={<HomeLayout />}>

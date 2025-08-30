@@ -13,6 +13,7 @@ import {
 import { AlertCircle } from "lucide-react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Link, redirect, useNavigate } from "react-router";
+import { toast } from "sonner";
 
 async function submitLogin(data: any) {
   let response = await fetch("http://localhost:3000/login", {
@@ -50,6 +51,10 @@ export default function LoginPage() {
     });
   }
   const errors = mutation.data?.errors;
+
+  if (mutation.isError) {
+    toast(`Error: ${mutation.error.message}`);
+  }
 
   return (
     <div className="min-h-screen bg-gray-50 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
