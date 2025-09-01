@@ -1,16 +1,17 @@
-import { useUserContext } from "@/context/UserContext";
-import ErrorPage from "@/pages/ErrorPage";
+import useUserQuery from "@/hooks/useUserQuery";
+import ErrorPage from "@/components/components/ErrorPage";
 import { Navigate, Outlet } from "react-router";
+import LoadingScreen from "../components/LoadingScreen";
 
 export default function LoggedOutRequiredLayout() {
-  const userQuery = useUserContext();
-  if (userQuery.isLoading) {
-    return <p>Loading...</p>;
+  const { isLoading, isError, error, data } = useUserQuery();
+  if (isLoading) {
+    return <LoadingScreen />;
   }
-  if (userQuery.isError) {
-    return <ErrorPage />;
+  if (isError) {
+    return <ErrorPage error={error?.message as string} />;
   }
-  if (userQuery.data.user) {
+  if (data.user) {
     return <Navigate to="/" replace />;
   }
   return <Outlet />;

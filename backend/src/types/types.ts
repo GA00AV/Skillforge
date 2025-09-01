@@ -10,38 +10,45 @@ export const userLoginType = z.object({
   password: z.string(),
 });
 
-// basic course info
-export const CourseBasicInfo = z.object({
-  title: z.string(),
-  description: z.string(),
-  category: z.string(),
-  price: z.number(),
-  thumbnail: z.boolean(),
-});
-
-// sections info
-export const sectionUploadType = z.object({
-  Sections: z.array(
-    z.object({
-      id: z.string(),
-      title: z.string(),
-      courseId: z.string(),
-      lectures: z.array(
-        z.object({
-          id: z.string(),
-          upload: z.boolean(),
-          title: z.string(),
-          duration: z.number(),
-          description: z.string(),
-        })
-      ),
-    })
-  ),
-});
-export interface LectureFromUser {
+export type CourseInput = {
   id: string;
-  upload: boolean;
   title: string;
-  duration: number;
   description: string;
-}
+  category: string;
+  thumbnail: boolean;
+  price: number;
+  instructorId: string;
+};
+
+export type LectureInput = {
+  id: string;
+  title: string;
+  description: string;
+  duration: number;
+  upload: boolean;
+};
+export type SectionInput = {
+  id: string;
+  title: string;
+  lectures: LectureInput[];
+};
+export type SectionsInput = {
+  sections: SectionInput[];
+  courseId: string;
+};
+export type ThumbnailUploadUrl = {
+  courseid: string;
+  url: string;
+};
+export type UploadFiles = {
+  Sections: SectionsUpload[];
+};
+
+export type SectionsUpload = {
+  sectionId: string;
+  Lectures: LectureUpload[];
+};
+export type LectureUpload = {
+  lectureId: string;
+  url: string;
+};

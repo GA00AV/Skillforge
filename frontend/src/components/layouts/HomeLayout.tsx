@@ -1,4 +1,4 @@
-import { Navbar } from "@/components/navbar";
+import { Navbar } from "@/components/components/navbar";
 import { Outlet } from "react-router";
 
 export default function HomeLayout() {

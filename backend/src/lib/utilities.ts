@@ -1,79 +1,59 @@
-import { Section, Lecture } from "@prisma/client";
-import { prisma } from "./prisma.js";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import { s3client } from "./s3Client.js";
 import { GetObjectCommand, PutObjectCommand } from "@aws-sdk/client-s3";
-import { LectureFromUser } from "../types/types.js";
-
-export async function getSections(courseid: string) {
-  const sectionsFromDB = await prisma.section.findMany({
-    where: { courseId: courseid },
-  });
-  let sections: { id: string; title: string; lectures: Lecture[] }[] = [];
-  if (sectionsFromDB) {
-    sectionsFromDB.forEach(async (section) => {
-      let lectures = await prisma.lecture.findMany({
-        where: { sectionID: section.id },
-      });
-      sections.push({
-        id: section.id,
-        title: section.title,
-        lectures,
-      });
-    });
-  }
-  return sections;
-}
+import { LectureInput } from "../types/types.js";
+import { prisma } from "./prisma.js";
 
 export async function createLecture(
-  lectureFromUser: LectureFromUser,
-  sectionFromDB: Section,
+  lectureInput: LectureInput,
+  courseid: string,
+  sectionid: string,
   instructorId: string
 ) {
-  let lectureFromDB = await prisma.lecture.create({
+  let lecture = await prisma.lecture.create({
     data: {
-      id: lectureFromUser.id,
-      sectionID: sectionFromDB.id,
-      title: lectureFromUser.title,
-      description: lectureFromUser.description,
-      duration: lectureFromUser.duration,
+      id: lectureInput.id,
+      sectionID: sectionid,
+      title: lectureInput.title,
+      description: lectureInput.description,
+      duration: lectureInput.duration,
     },
   });
   let url = await getSignedUrl(
     s3client,
     new PutObjectCommand({
       Bucket: "tempvideo",
-      Key: `${instructorId}/${sectionFromDB.courseId}/${sectionFromDB.id}/${lectureFromDB.title}.mp4`,
+      Key: `${instructorId}/${courseid}/${sectionid}/${lecture.title}.mp4`,
     })
   );
-  return { lectureId: lectureFromDB.id, url };
+  return { lectureId: lecture.id, url };
 }
 export async function updateLecture(
-  lectureFromUser: LectureFromUser,
-  sectionFromDB: Section,
-  instructorId: string,
-  isLectureInfoChanged: boolean
+  lectureInput: LectureInput,
+  courseid: string,
+  sectionid: string,
+  instructorId: string
 ) {
   // lec don't exist so create it and url is needed
-  if (isLectureInfoChanged) {
-    await prisma.lecture.update({
-      where: { id: lectureFromUser.id },
-      data: {
-        title: lectureFromUser.title,
-        description: lectureFromUser.description,
-        duration: lectureFromUser.duration,
-      },
-    });
-  }
-  if (lectureFromUser.upload) {
+
+  await prisma.lecture.update({
+    where: { id: lectureInput.id },
+    data: {
+      title: lectureInput.title,
+      description: lectureInput.description,
+      duration: lectureInput.duration,
+    },
+  });
+
+  if (lectureInput.upload) {
     let url = await getSignedUrl(
       s3client,
       new PutObjectCommand({
         Bucket: "tempvideo",
-        Key: `${instructorId}/${sectionFromDB.courseId}/${sectionFromDB.id}/${lectureFromUser.title}.mp4`,
+        Key: `${instructorId}/${courseid}/${sectionid}/${lectureInput.title}.mp4`,
       })
     );
-    return { url, lectureId: lectureFromUser.id };
+    return { url, lectureId: lectureInput.id };
   }
 }
 

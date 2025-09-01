@@ -31,15 +31,15 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Link } from "react-router";
 import { useLocation } from "react-router";
-import { useUserContext } from "@/context/UserContext";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { logout } from "@/lib/utils";
+import useUserQuery from "@/hooks/useUserQuery";
 
 const links = {
   navMain: [
     {
       title: "Dashboard",
-      url: "/app/dashboard",
+      url: "/app",
       icon: Home,
     },
 
@@ -67,20 +67,14 @@ const links = {
       url: "/app/notifications",
       icon: MessageSquare,
     },
-
-    {
-      title: "Settings",
-      url: "/app/profile",
-      icon: Settings,
-    },
   ],
 };
 
 export function AppSidebar() {
   const location = useLocation();
-  const userQuery = useUserContext();
+  const { isLoading, isError, data } = useUserQuery();
   const queryclient = useQueryClient();
-  const mutator = useMutation({
+  const logoutMutator = useMutation({
     mutationFn: () => logout("http://localhost:3000/signout"),
     onError: () => {
       queryclient.invalidateQueries({ queryKey: ["User"] });
@@ -89,28 +83,12 @@ export function AppSidebar() {
       queryclient.invalidateQueries({ queryKey: ["User"] });
     },
   });
-  if (!userQuery.data) {
-    userQuery.refetch();
-  }
+
   let user = {
-    name:
-      userQuery.isLoading || userQuery.isError
-        ? ""
-        : userQuery.data.user
-        ? userQuery.data.user.name
-        : "",
-    email:
-      userQuery.isLoading || userQuery.isError
-        ? ""
-        : userQuery.data.user
-        ? userQuery.data.user.email
-        : "",
+    name: isLoading || isError ? "" : data.user ? data.user.name : "",
+    email: isLoading || isError ? "" : data.user ? data.user.email : "",
     profileImg:
-      userQuery.isLoading || userQuery.isError
-        ? ""
-        : userQuery.data.user
-        ? userQuery.data.user.profileImg
-        : "",
+      isLoading || isError ? "" : data.user ? data.user.profileImg : "",
   };
   return (
     <Sidebar variant="inset" collapsible="icon">
@@ -236,14 +214,9 @@ export function AppSidebar() {
                     </div>
                   </div>
                 </DropdownMenuLabel>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem>
-                  <Settings className="mr-2 h-4 w-4" />
-                  <Link to={"/app/profile"}>Account Settings</Link>
-                </DropdownMenuItem>
 
                 <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={() => mutator.mutate()}>
+                <DropdownMenuItem onClick={() => logoutMutator.mutate()}>
                   Sign out
                 </DropdownMenuItem>
               </DropdownMenuContent>

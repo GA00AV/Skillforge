@@ -1,8 +1,9 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { AlertTriangle, Home } from "lucide-react";
+import { Link } from "react-router";
 
-export default function InternalServerError() {
+export default function ErrorPage({ error }: { error: string }) {
   return (
     <div className="min-h-screen bg-white flex items-center justify-center p-4">
       <Card className="w-full max-w-lg">
@@ -14,20 +15,16 @@ export default function InternalServerError() {
             <h1 className="text-3xl font-bold text-gray-900 mb-2">
               Something Went Wrong!
             </h1>
-            <p className="text-gray-600 mb-4 text-lg">
-              We're experiencing some technical difficulties on our end. Our
-              team has been automatically notified and is working to resolve
-              this issue.
-            </p>
+            <p className="text-gray-600 mb-4 text-lg">{error}</p>
           </div>
 
           <div className="space-y-3 mb-6">
-            <a href="/" className="block">
+            <Link to="/" className="block">
               <Button variant="outline" className="w-full bg-transparent">
                 <Home className="w-4 h-4 mr-2" />
                 Return to Homepage
               </Button>
-            </a>
+            </Link>
           </div>
         </CardContent>
       </Card>

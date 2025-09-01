@@ -21,15 +21,15 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Link } from "react-router";
-import { useUserContext } from "@/context/UserContext";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { logout } from "@/lib/utils";
+import useUserQuery from "@/hooks/useUserQuery";
 
 export function Navbar() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const userQuery = useUserContext();
+  const { isLoading, isError, data, error } = useUserQuery();
   const queryclient = useQueryClient();
-  const mutator = useMutation({
+  const logoutMutator = useMutation({
     mutationFn: () => logout("http://localhost:3000/signout"),
     onError: () => {
       queryclient.invalidateQueries({ queryKey: ["User"] });
@@ -38,12 +38,7 @@ export function Navbar() {
       queryclient.invalidateQueries({ queryKey: ["User"] });
     },
   });
-  const isLoggedIn =
-    userQuery.isLoading || userQuery.isError
-      ? false
-      : userQuery.data.user
-      ? true
-      : false;
+  const isLoggedIn = isLoading || isError ? false : data.user ? true : false;
 
   return (
     <nav className="border-b border-gray-200 bg-white sticky top-0 z-50">
@@ -82,11 +77,11 @@ export function Navbar() {
                   >
                     <Avatar className="h-8 w-8">
                       <AvatarImage
-                        src={isLoggedIn ? userQuery.data.user.profileImg : ""}
-                        alt={isLoggedIn ? userQuery.data.user.name : "user"}
+                        src={isLoggedIn ? data.user.profileImg : ""}
+                        alt={isLoggedIn ? data.user.name : "user"}
                       />
                       <AvatarFallback>
-                        {isLoggedIn ? userQuery.data.user.name : ""}
+                        {isLoggedIn ? data.user.name : ""}
                       </AvatarFallback>
                     </Avatar>
                   </Button>
@@ -98,7 +93,7 @@ export function Navbar() {
                       <span>Profile</span>
                     </DropdownMenuItem>
                   </Link>
-                  <Link to="/app/dashboard">
+                  <Link to="/app">
                     <DropdownMenuItem>
                       <LayoutDashboardIcon className="mr-2 h-4 w-4 text-gray-900" />
                       <span>Dashboard</span>
@@ -111,7 +106,7 @@ export function Navbar() {
                     </DropdownMenuItem>
                   </Link>
                   <DropdownMenuSeparator />
-                  <DropdownMenuItem onClick={() => mutator.mutate()}>
+                  <DropdownMenuItem onClick={() => logoutMutator.mutate()}>
                     <LogOutIcon className="mr-2 h-4 w-4 text-gray-900" />
                     <span>Logout</span>
                   </DropdownMenuItem>

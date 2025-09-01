@@ -12,17 +12,13 @@ export async function authorisationMiddleware(
   next: NextFunction
 ) {
   const session = req.cookies["session_id"];
-  console.log(`Session is ${session}`);
   if (!session) {
-    console.log("no session so no user");
     return next();
   }
   let info = await redis.get(session);
   if (!info) {
-    console.log("no session in redis so no user");
     return next();
   }
-  console.log(`User is there ${info}`);
   req.user = JSON.parse(info);
   return next();
 }
