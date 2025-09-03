@@ -3,11 +3,9 @@ import CourseService from "../services/Course.js";
 
 let Query = {
   courses: async () => {
-    console.log("called courses from Query");
     return await CourseService.getCourses();
   },
   course: async (parent: any, payload: { id: string }) => {
-    console.log("Called course from Query");
     return await CourseService.getCourse(payload.id);
   },
 };
@@ -24,10 +22,10 @@ let Mutation = {
       };
     }
   ) => {
-    if (context.user) {
-      return await CourseService.updateBasics(payload.data, context.user.id);
+    if (!context.user) {
+      throw Error("User is not logged in!");
     }
-    throw Error("User is not logged in!");
+    return await CourseService.updateBasics(payload.data, context.user.id);
   },
   updateSections: async (
     parent: any,
@@ -50,17 +48,14 @@ let Mutation = {
 
 let Course = {
   instructor: async (parent: any) => {
-    console.log("called instructor from Course");
     return await CourseService.getInstructor(parent.instructorId);
   },
   sections: async (parent: any) => {
-    console.log("called sections from Course");
     return await CourseService.getSections(parent.id);
   },
 };
 let Section = {
   lectures: async (parent: any) => {
-    console.log("called lecture from Course");
     return await CourseService.getLectures(parent.id);
   },
 };

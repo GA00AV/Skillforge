@@ -59,7 +59,6 @@ input CourseInput{
     category: String!
     thumbnail: Boolean!
     price: Int!
-    instructorId: String!
 }
 
 input LectureInput {

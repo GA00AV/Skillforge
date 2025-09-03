@@ -2,7 +2,6 @@ import { redis } from "./lib/redis.js";
 import express from "express";
 import { authHandler } from "./handlers/authHandlers.js";
 import { homeHandler } from "./handlers/homeHandler.js";
-import { appHandler } from "./handlers/appHandler.js";
 import cors from "cors";
 import cookieParser from "cookie-parser";
 import { expressMiddleware } from "@as-integrations/express5";
@@ -40,7 +39,7 @@ async function main() {
 
   //authorisation middlewares
   app.use(authorisationMiddleware);
-  app.use(["/app/", "/logout"], loggedInMiddleware);
+  app.use(["/signout"], loggedInMiddleware);
   app.use(["/login", "/siginup"], loggedOutMiddleware);
 
   app.use(
@@ -53,7 +52,6 @@ async function main() {
   );
   app.use(authHandler);
   app.use(homeHandler);
-  app.use("/app", appHandler);
   let port = process.env.PORT || 8080;
   app.listen(port, () => {
     console.log(`Server listening on port: ${port}`);

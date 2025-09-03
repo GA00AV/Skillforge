@@ -58,13 +58,9 @@ export async function updateLecture(
 }
 
 export async function getSignedUrlForThumbnail(
-  thumnail: string | null,
   instructorId: string,
   courseid: string
 ) {
-  if (!thumnail) {
-    return null;
-  }
   return await getSignedUrl(
     s3client,
     new GetObjectCommand({

@@ -17,39 +17,43 @@ import MessagePage from "./pages/app/Message.tsx";
 import ProtectedRouteLayout from "./components/layouts/ProtectedRouteLayout.tsx";
 import LoggedOutRequiredLayout from "./components/layouts/LoggedOutRequiredLayout.tsx";
 import EditCoursePage from "./pages/app/editCourse.tsx";
-
+import { ApolloProvider } from "@apollo/client/react";
+import { graphQLclient } from "./lib/graphqlClient.ts";
 export default function App() {
   return (
-    <BrowserRouter>
-      <Routes>
-        <Route element={<HomeLayout />}>
-          <Route path="/" element={<HomePage />} />
-          <Route path="/search" element={<SearchPage />} />
-          <Route path="/course/:id" element={<CoursePage />} />
-        </Route>
-        <Route element={<LoggedOutRequiredLayout />}>
-          <Route path="/login" element={<LoginPage />} />
-          <Route path="/signup" element={<SignupPage />} />
-        </Route>
-        <Route path="/app" element={<ProtectedRouteLayout />}>
-          <Route element={<DashboardLayout />}>
-            <Route index element={<DashboardPage />} />
-            <Route path="notifications" element={<NotificationsPage />} />
-            <Route path="learn">
-              <Route index element={<MyLearningPage />} />
-              <Route path=":courseid" element={<WatchCoursePage />} />
-            </Route>
-            <Route path="my-courses" element={<MyCoursesPage />} />
-            <Route
-              path="analytics/:courseid"
-              element={<CourseAnalyticsPage />}
-            />
-            <Route path="edit/:courseid" element={<EditCoursePage />} />
-            <Route path="message" element={<MessagePage />} />
+    <ApolloProvider client={graphQLclient}>
+      <BrowserRouter>
+        <Routes>
+          <Route element={<HomeLayout />}>
+            <Route path="/" element={<HomePage />} />
+            <Route path="/search" element={<SearchPage />} />
+            <Route path="/course/:id" element={<CoursePage />} />
           </Route>
-        </Route>
-        <Route path="*" element={<NotFound />} />
-      </Routes>
-    </BrowserRouter>
+          <Route element={<LoggedOutRequiredLayout />}>
+            <Route path="/login" element={<LoginPage />} />
+            <Route path="/signup" element={<SignupPage />} />
+          </Route>
+
+          <Route path="/app" element={<ProtectedRouteLayout />}>
+            <Route element={<DashboardLayout />}>
+              <Route index element={<DashboardPage />} />
+              <Route path="notifications" element={<NotificationsPage />} />
+              <Route path="learn">
+                <Route index element={<MyLearningPage />} />
+                <Route path=":courseid" element={<WatchCoursePage />} />
+              </Route>
+              <Route path="my-courses" element={<MyCoursesPage />} />
+              <Route
+                path="analytics/:courseid"
+                element={<CourseAnalyticsPage />}
+              />
+              <Route path="edit/:courseid" element={<EditCoursePage />} />
+              <Route path="message" element={<MessagePage />} />
+            </Route>
+          </Route>
+          <Route path="*" element={<NotFound />} />
+        </Routes>
+      </BrowserRouter>
+    </ApolloProvider>
   );
 }

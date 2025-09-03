@@ -14,13 +14,7 @@ import { Label } from "@/components/ui/label";
 import { Progress } from "@/components/ui/progress";
 import { type Lecture, type Section } from "@/types/types";
 
-export default function UpdateCourseSections({
-  setActiveTab,
-  activeTab,
-}: {
-  setActiveTab: React.Dispatch<React.SetStateAction<number>>;
-  activeTab: number;
-}) {
+export default function UpdateCourseSections() {
   const [sections, setSections] = useState<Section[]>([]);
 
   const handleAddSection = () => {

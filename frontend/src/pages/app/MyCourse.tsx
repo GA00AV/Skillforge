@@ -26,20 +26,21 @@ import {
   Star,
   BarChart3,
 } from "lucide-react";
-import { Link } from "react-router";
+import { Link, useNavigate } from "react-router";
+import { v4 as uuidv4 } from "uuid";
 
 export default function MyCoursesPage() {
-  const [searchQuery, setSearchQuery] = useState("");
-  const [filterStatus, setFilterStatus] = useState("all");
+  const navigate = useNavigate();
   const [courseToDelete, setCourseToDelete] = useState<number | null>(null);
-
+  function handleCreateCourse() {
+    const id = uuidv4();
+    navigate(`/app/edit/${id}`);
+  }
   const courses = [
     {
       id: 1,
       title: "JavaScript for Beginners",
       status: "published",
-      students: 1250,
-      revenue: 1875.5,
       rating: 4.8,
       reviews: 234,
       lastUpdated: "2024-01-15",
@@ -74,10 +75,6 @@ export default function MyCoursesPage() {
       id: 4,
       title: "Advanced React Patterns",
       status: "processing",
-      students: 0,
-      revenue: 0,
-      rating: 0,
-      reviews: 0,
       lastUpdated: "2024-01-18",
       image: "/placeholder.svg?height=120&width=200",
       price: 129.99,
@@ -86,11 +83,11 @@ export default function MyCoursesPage() {
 
   const getStatusBadge = (status: string) => {
     switch (status) {
-      case "published":
+      case "PUBLISHED":
         return <Badge className="bg-green-100 text-green-800">Published</Badge>;
-      case "draft":
+      case "DRAFT":
         return <Badge className="bg-gray-100 text-gray-800">Draft</Badge>;
-      case "processing":
+      case "PROCESSING":
         return (
           <Badge className="bg-yellow-100 text-yellow-800">Under Review</Badge>
         );
@@ -98,15 +95,6 @@ export default function MyCoursesPage() {
         return <Badge variant="outline">{status}</Badge>;
     }
   };
-
-  const filteredCourses = courses.filter((course) => {
-    const matchesSearch = course.title
-      .toLowerCase()
-      .includes(searchQuery.toLowerCase());
-    const matchesFilter =
-      filterStatus === "all" || course.status === filterStatus;
-    return matchesSearch && matchesFilter;
-  });
 
   return (
     <div className="p-6 space-y-6">
@@ -117,17 +105,18 @@ export default function MyCoursesPage() {
             Manage your published and draft courses.
           </p>
         </div>
-        <Link to="/app/upload-course">
-          <Button className="bg-gray-900 hover:bg-gray-800 text-white">
-            <Plus className="w-4 h-4 mr-2" />
-            Create Course
-          </Button>
-        </Link>
+        <Button
+          onClick={handleCreateCourse}
+          className="bg-gray-900 hover:bg-gray-800 text-white"
+        >
+          <Plus className="w-4 h-4 mr-2" />
+          Create Course
+        </Button>
       </div>
 
       {/* Course Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {filteredCourses.map((course) => (
+        {courses.map((course) => (
           <Card
             key={course.id}
             className="border-gray-200 hover:shadow-lg transition-shadow py-0"
@@ -155,10 +144,6 @@ export default function MyCoursesPage() {
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end">
                       <DropdownMenuItem>
-                        <Eye className="w-4 h-4 mr-2" />
-                        Preview
-                      </DropdownMenuItem>
-                      <DropdownMenuItem>
                         <Edit className="w-4 h-4 mr-2" />
                         Edit
                       </DropdownMenuItem>
@@ -177,36 +162,10 @@ export default function MyCoursesPage() {
               </h3>
               <p className="text-sm text-gray-600 mb-3">${course.price}</p>
 
-              {course.status === "published" && (
-                <div className="space-y-2 mb-4">
-                  <div className="flex items-center justify-between text-sm">
-                    <div className="flex items-center gap-1 text-gray-600">
-                      <Users className="w-4 h-4" />
-                      <span>{course.students} students</span>
-                    </div>
-                    <div className="flex items-center gap-1 text-gray-600">
-                      <DollarSign className="w-4 h-4" />
-                      <span>${course.revenue.toFixed(2)}</span>
-                    </div>
-                  </div>
-
-                  {course.rating > 0 && (
-                    <div className="flex items-center gap-1 text-sm text-gray-600">
-                      <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
-                      <span>{course.rating}</span>
-                      <span>({course.reviews} reviews)</span>
-                    </div>
-                  )}
-                </div>
-              )}
-
-              <div className="flex items-center justify-between pt-3 border-t border-gray-100">
-                <span className="text-xs text-gray-500">
-                  Updated {new Date(course.lastUpdated).toLocaleDateString()}
-                </span>
-                <div className="flex items-center gap-2">
-                  {course.status === "published" && (
-                    <Link to={`/app/analytics/${course.id}`}>
+              <div className="pt-3 border-t border-gray-100">
+                <div className="flex items-center justify-between">
+                  <Link to={`/app/analytics/${course.id}`}>
+                    {course.status === "published" && (
                       <Button
                         variant="outline"
                         size="sm"
@@ -215,9 +174,9 @@ export default function MyCoursesPage() {
                         <BarChart3 className="w-3 h-3 mr-1" />
                         Analytics
                       </Button>
-                    </Link>
-                  )}
-                  <a href={`/app/upload-course/${course.id}`}>
+                    )}
+                  </Link>
+                  <Link to={`/app/edit/${course.id}`}>
                     <Button
                       size="sm"
                       className="bg-gray-900 hover:bg-gray-800 text-white"
@@ -225,7 +184,7 @@ export default function MyCoursesPage() {
                       <Edit className="w-3 h-3 mr-1" />
                       Edit
                     </Button>
-                  </a>
+                  </Link>
                 </div>
               </div>
             </CardContent>
@@ -233,7 +192,7 @@ export default function MyCoursesPage() {
         ))}
       </div>
 
-      {filteredCourses.length === 0 && (
+      {courses.length === 0 && (
         <Card className="border-gray-200">
           <CardContent className="text-center py-12">
             <div className="text-gray-400 mb-4">
@@ -243,16 +202,12 @@ export default function MyCoursesPage() {
               No courses found
             </h3>
             <p className="text-gray-600 mb-4">
-              {searchQuery || filterStatus !== "all"
-                ? "Try adjusting your search or filter criteria."
-                : "You haven't created any courses yet."}
+              "You haven't created any courses yet.
             </p>
-            <a href="/upload-course">
-              <Button className="bg-gray-900 hover:bg-gray-800 text-white">
-                <Plus className="w-4 h-4 mr-2" />
-                Create Your First Course
-              </Button>
-            </a>
+            <Button className="bg-gray-900 hover:bg-gray-800 text-white">
+              <Plus className="w-4 h-4 mr-2" />
+              Create Your First Course
+            </Button>
           </CardContent>
         </Card>
       )}

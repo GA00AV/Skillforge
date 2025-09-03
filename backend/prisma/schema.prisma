@@ -19,7 +19,6 @@ model User{
   email String @unique
   password String
   profileImg String @default("https://picsum.photos/200")
-  reviews Review[]
   notifications Notification[]
   enrolledCourses Course[] @relation("enrollments")
   createdCourses Course[] @relation("instructor")
@@ -33,21 +32,12 @@ model Course{
   lastUpdate DateTime @updatedAt
   price Float?
   status String
-  reviews Review[]
   sections Section[]
   students User[] @relation("enrollments")
   instructorId String
   instructor User @relation("instructor", fields: [instructorId], references: [id])
 }
-model Review{
-  id String @id @default(uuid())
-  rating Float
-  review String?
-  course Course @relation(fields: [courseId], references: [id])
-  courseId String
-  studentID String
-  student User @relation(fields: [studentID], references: [id])
-}
+
 model Section{
   id String @id @default(uuid())
   title String

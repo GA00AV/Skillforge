@@ -1,4 +1,3 @@
-import type { CourseInfo } from "@/types/types";
 import { useMutation } from "@tanstack/react-query";
 import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
@@ -26,18 +25,13 @@ export async function logout(url: string) {
   }
   return response.json();
 }
-export async function fetchCourseDetails(
-  url: string,
-  courseid: string
-): Promise<CourseInfo | null> {
-  const response = await fetch(url, {
-    credentials: "include",
+
+export async function uploadData(url: string, data: any) {
+  let response = await fetch(url, {
+    method: "PUT",
+    body: data,
   });
-  if (response.ok) {
-    return response.json();
+  if (!response.ok) {
+    throw Error(response.statusText);
   }
-  if (response.status === 404) {
-    return null;
-  }
-  throw new Error(`${response.status}: ${response.statusText}`);
 }

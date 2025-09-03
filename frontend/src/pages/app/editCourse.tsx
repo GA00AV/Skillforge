@@ -32,10 +32,7 @@ export default function EditCoursePage() {
           />
 
           {/* Step 2 */}
-          <UpdateCourseSections
-            activeTab={activeTab}
-            setActiveTab={setActiveTab}
-          />
+          <UpdateCourseSections />
         </Card>
       </Tabs>
     </div>

@@ -19,6 +19,7 @@ export async function authorisationMiddleware(
   if (!info) {
     return next();
   }
+
   req.user = JSON.parse(info);
   return next();
 }

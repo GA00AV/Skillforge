@@ -1,12 +1,12 @@
-import { email, z } from "zod";
+import { z } from "zod";
 export const userSignupType = z.object({
   name: z.string(),
-  email: z.string().email(),
+  email: z.email(),
   password: z.string().min(8),
   confirmPassword: z.string().min(8),
 });
 export const userLoginType = z.object({
-  email: z.string().email(),
+  email: z.email(),
   password: z.string(),
 });
 
@@ -17,7 +17,6 @@ export type CourseInput = {
   category: string;
   thumbnail: boolean;
   price: number;
-  instructorId: string;
 };
 
 export type LectureInput = {

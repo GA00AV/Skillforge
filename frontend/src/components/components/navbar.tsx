@@ -87,12 +87,6 @@ export function Navbar() {
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent className="w-56" align="end" forceMount>
-                  <Link to="/app/profile">
-                    <DropdownMenuItem>
-                      <User className="mr-2 h-4 w-4 text-gray-900" />
-                      <span>Profile</span>
-                    </DropdownMenuItem>
-                  </Link>
                   <Link to="/app">
                     <DropdownMenuItem>
                       <LayoutDashboardIcon className="mr-2 h-4 w-4 text-gray-900" />
