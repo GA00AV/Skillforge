@@ -6,10 +6,10 @@ import { compare, hash } from "bcrypt";
 import { randomUUID } from "crypto";
 import { AuthRequest } from "../middlewares.js";
 
-const authHandler = Router();
+const handler = Router();
 
 //login handler
-authHandler.post("/signup", async (req, res) => {
+handler.post("/signup", async (req, res) => {
   try {
     const expirationTime =
       Number(process.env.MAX_SESSION_TIME_IN_SEC) || 30 * 60;
@@ -70,7 +70,7 @@ authHandler.post("/signup", async (req, res) => {
 });
 
 // signup handler
-authHandler.post("/login", async (req, res) => {
+handler.post("/login", async (req, res) => {
   try {
     const expirationTime =
       Number(process.env.MAX_SESSION_TIME_IN_SEC) || 30 * 60;
@@ -124,7 +124,7 @@ authHandler.post("/login", async (req, res) => {
 });
 
 //signout handler
-authHandler.post("/signout", async (req: AuthRequest, res) => {
+handler.post("/signout", async (req: AuthRequest, res) => {
   try {
     const session = req.cookies["session_id"];
     let data = await redis.del(session);
@@ -138,4 +138,8 @@ authHandler.post("/signout", async (req: AuthRequest, res) => {
     res.sendStatus(500);
   }
 });
-export { authHandler };
+
+handler.get("/user", (req: AuthRequest, res) => {
+  res.json({ user: req.user });
+});
+export { handler };

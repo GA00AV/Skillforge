@@ -12,48 +12,35 @@ import {
 } from "@/components/ui/collapsible";
 import { Label } from "@/components/ui/label";
 import { Progress } from "@/components/ui/progress";
-import { type Lecture, type Section } from "@/types/types";
+import { useNavigate } from "react-router";
+import type { SectionInput } from "@/types/types";
+import { useParams } from "react-router";
+import { v4 } from "uuid";
 
 export default function UpdateCourseSections() {
-  const [sections, setSections] = useState<Section[]>([]);
+  const params = useParams();
+  const [sections, setSections] = useState<SectionInput[]>([]);
+  const navigate = useNavigate();
 
   const handleAddSection = () => {
     setSections([
       ...sections,
       {
-        id: Date.now().toString(),
+        id: v4(),
         title: `New Section ${sections.length + 1}`,
         lectures: [],
       },
     ]);
   };
 
-  const handleDeleteSection = (sectionId: string) => {
-    setSections(sections.filter((section) => section.id !== sectionId));
-  };
-
   const handleAddLecture = (sectionId: string) => {
-    setSections(
-      sections.map((section) =>
-        section.id === sectionId
-          ? {
-              ...section,
-              lectures: [
-                ...section.lectures,
-                {
-                  id: Date.now().toString(),
-                  title: `New Lecture ${section.lectures.length + 1}`,
-                  description: "",
-                  videoUrl: "",
-                  resources: [],
-                  uploadProgress: 0,
-                  resourceUploadProgress: {},
-                },
-              ],
-            }
-          : section
-      )
-    );
+    const newSections = sections.map((section) => {
+      if (section.id === sectionId) {
+        if (section.lectures) {
+          return { ...section, lectures: [...section.lectures] };
+        }
+      }
+    });
   };
 
   const handleDeleteLecture = (sectionId: string, lectureId: string) => {
@@ -62,7 +49,7 @@ export default function UpdateCourseSections() {
         section.id === sectionId
           ? {
               ...section,
-              lectures: section.lectures.filter(
+              lectures: section.lectures?.filter(
                 (lecture) => lecture.id !== lectureId
               ),
             }
@@ -74,7 +61,7 @@ export default function UpdateCourseSections() {
   const handleLectureChange = (
     sectionId: string,
     lectureId: string,
-    field: keyof Lecture,
+    field: string,
     value: any
   ) => {
     setSections(
@@ -82,7 +69,7 @@ export default function UpdateCourseSections() {
         section.id === sectionId
           ? {
               ...section,
-              lectures: section.lectures.map((lecture) =>
+              lectures: section.lectures?.map((lecture) =>
                 lecture.id === lectureId
                   ? { ...lecture, [field]: value }
                   : lecture
@@ -93,35 +80,36 @@ export default function UpdateCourseSections() {
     );
   };
 
-  const handleVideoUpload = (
-    sectionId: string,
-    lectureId: string,
-    file: File
-  ) => {
-    const lectureToUpdate = sections
-      .find((s) => s.id === sectionId)
-      ?.lectures.find((l) => l.id === lectureId);
-    if (!lectureToUpdate) return;
+  // const handleVideoUpload = (
+  //   sectionId: string,
+  //   lectureId: string,
+  //   file: File
+  // ) => {
+  //   const lectureToUpdate = sections
+  //     .find((s) => s.id === sectionId)
+  //     ?.lectures.find((l) => l.id === lectureId);
+  //   if (!lectureToUpdate) return;
 
-    // Simulate upload progress
-    let progress = 0;
-    const interval = setInterval(() => {
-      progress += 10;
-      if (progress <= 100) {
-        handleLectureChange(sectionId, lectureId, "uploadProgress", progress);
-      } else {
-        clearInterval(interval);
-        handleLectureChange(
-          sectionId,
-          lectureId,
-          "videoUrl",
-          URL.createObjectURL(file)
-        );
-      }
-    }, 100);
-  };
+  //   // Simulate upload progress
+  //   let progress = 0;
+  //   const interval = setInterval(() => {
+  //     progress += 10;
+  //     if (progress <= 100) {
+  //       handleLectureChange(sectionId, lectureId, "uploadProgress", progress);
+  //     } else {
+  //       clearInterval(interval);
+  //       handleLectureChange(
+  //         sectionId,
+  //         lectureId,
+  //         "videoUrl",
+  //         URL.createObjectURL(file)
+  //       );
+  //     }
+  //   }, 100);
+  // };
   return (
     <TabsContent value="2" className="space-y-6">
+      {/* <form> */}
       <CardHeader className="flex flex-row items-center justify-between">
         <CardTitle className="text-lg text-gray-900">
           Course Curriculum
@@ -144,6 +132,7 @@ export default function UpdateCourseSections() {
           >
             <div className="flex items-center justify-between">
               <Input
+                required
                 value={section.title}
                 onChange={(e) =>
                   setSections(
@@ -163,13 +152,15 @@ export default function UpdateCourseSections() {
               <Button
                 variant="ghost"
                 size="icon"
-                onClick={() => handleDeleteSection(section.id)}
+                onClick={() =>
+                  setSections(sections.filter((s) => s.id !== section.id))
+                }
               >
                 <Trash2 className="h-4 w-4 text-red-500" />
               </Button>
             </div>
             <CollapsibleContent className="mt-4 space-y-4">
-              {section.lectures.map((lecture, lectureIndex) => (
+              {section.lectures?.map((lecture, lectureIndex) => (
                 <Card key={lecture.id} className="border-gray-200 p-4">
                   <div className="flex items-center justify-between mb-3">
                     <h4 className="font-medium text-gray-900">
@@ -189,6 +180,7 @@ export default function UpdateCourseSections() {
                     <div>
                       <Label className="pb-2">Lecture Title</Label>
                       <Input
+                        required
                         value={lecture.title}
                         onChange={(e) =>
                           handleLectureChange(
@@ -222,16 +214,16 @@ export default function UpdateCourseSections() {
                       <Input
                         type="file"
                         accept="video/*"
-                        onChange={(e) =>
-                          e.target.files &&
-                          handleVideoUpload(
-                            section.id,
-                            lecture.id,
-                            e.target.files[0]
-                          )
-                        }
+                        // onChange={(e) =>
+                        //   e.target.files &&
+                        //   handleVideoUpload(
+                        //     section.id,
+                        //     lecture.id,
+                        //     e.target.files[0]
+                        //   )
+                        // }
                       />
-                      {lecture.uploadProgress > 0 &&
+                      {/* {lecture.uploadProgress > 0 &&
                         lecture.uploadProgress < 100 && (
                           <Progress
                             value={lecture.uploadProgress}
@@ -243,7 +235,7 @@ export default function UpdateCourseSections() {
                           <Video className="w-4 h-4" />
                           Video uploaded!
                         </div>
-                      )}
+                      )} */}
                     </div>
                   </div>
                 </Card>
@@ -262,7 +254,7 @@ export default function UpdateCourseSections() {
       </CardContent>
       {/* Navigation */}
       <div className="flex px-6 justify-between pb-6">
-        <Button variant="outline" onClick={() => setActiveTab(activeTab - 1)}>
+        <Button variant="outline" onClick={() => navigate(0)}>
           Back
         </Button>
         <Button
@@ -276,6 +268,7 @@ export default function UpdateCourseSections() {
           Submit
         </Button>
       </div>
+      {/* </form> */}
     </TabsContent>
   );
 }

@@ -1,7 +1,6 @@
 import { redis } from "./lib/redis.js";
 import express from "express";
-import { authHandler } from "./handlers/authHandlers.js";
-import { homeHandler } from "./handlers/homeHandler.js";
+import { handler } from "./handlers/handler.js";
 import cors from "cors";
 import cookieParser from "cookie-parser";
 import { expressMiddleware } from "@as-integrations/express5";
@@ -43,15 +42,14 @@ async function main() {
   app.use(["/login", "/siginup"], loggedOutMiddleware);
 
   app.use(
-    "/graphql",
+    "/course",
     expressMiddleware(await createGraphqlServer(), {
       context: async ({ req }: { req: AuthRequest }) => {
         return { user: req.user };
       },
     })
   );
-  app.use(authHandler);
-  app.use(homeHandler);
+  app.use(handler);
   let port = process.env.PORT || 8080;
   app.listen(port, () => {
     console.log(`Server listening on port: ${port}`);

@@ -4,7 +4,7 @@ export type BasicCourseReturn = {
     description: string;
     id: string;
     price: number;
-    thumbnail: string | null;
+    thumbnail: string;
     title: string;
   };
 };
@@ -14,4 +14,17 @@ export type ThumbnailUploadUrl = {
     courseid: string;
     url: string | null;
   };
+};
+
+export type LectureInput = {
+  id: string;
+  title: string;
+  description: string;
+  duration?: number;
+  upload: boolean;
+};
+export type SectionInput = {
+  id: string;
+  title: string;
+  lectures?: LectureInput[];
 };

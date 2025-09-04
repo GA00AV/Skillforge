@@ -48,14 +48,17 @@ export default function BasicCourseInfoForm({
     { data: mutationData, loading: mutationLoading, error: mutationError },
   ] = useMutationGraphQl<ThumbnailUploadUrl>(UPLOAD_BASIC_COURSEINFO);
   const [courseImage, setCourseImage] = useState<File | null>(null);
+  let defaultValues: BasicCourseReturn | undefined;
+  if (data) {
+    if (data.course) defaultValues = { course: data.course };
+  }
   const imgShowUrl = courseImage
     ? URL.createObjectURL(courseImage)
-    : data
-    ? data.course.thumbnail
-      ? data.course.thumbnail
+    : defaultValues
+    ? defaultValues.course.thumbnail
+      ? defaultValues.course.thumbnail
       : ""
     : "";
-
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     let formData = new FormData(event.currentTarget);
@@ -67,11 +70,11 @@ export default function BasicCourseInfoForm({
       category: formData.get("category"),
       thumbnail: courseImage ? true : false,
     };
-    const isChanged = data
-      ? data.course.category !== payload.category ||
-        data.course.description !== payload.description ||
-        data.course.price !== payload.price ||
-        data.course.title !== payload.title ||
+    const isChanged = defaultValues
+      ? defaultValues.course.category !== payload.category ||
+        defaultValues.course.description !== payload.description ||
+        defaultValues.course.price !== payload.price ||
+        defaultValues.course.title !== payload.title ||
         courseImage
       : true;
     if (!isChanged) {
@@ -90,7 +93,6 @@ export default function BasicCourseInfoForm({
       }
     }
   }
-  console.log("MUTATION DATA", mutationData);
 
   if (loading) {
     return <LoadingScreen />;
@@ -129,7 +131,7 @@ export default function BasicCourseInfoForm({
             </Label>
             <Input
               required
-              defaultValue={data ? data.course.title : ""}
+              defaultValue={defaultValues ? defaultValues.course.title : ""}
               id="title"
               name="title"
               placeholder="e.g., Master JavaScript in 30 Days"
@@ -141,7 +143,9 @@ export default function BasicCourseInfoForm({
             </Label>
             <Textarea
               required
-              defaultValue={data ? data.course.description : ""}
+              defaultValue={
+                defaultValues ? defaultValues.course.description : ""
+              }
               name="description"
               id="description"
               placeholder="Provide a detailed description..."
@@ -156,7 +160,7 @@ export default function BasicCourseInfoForm({
               id="category"
               name="category"
               required
-              defaultValue={data ? data.course.category : ""}
+              defaultValue={defaultValues ? defaultValues.course.category : ""}
               className="peer block w-full appearance-none rounded-md border border-input bg-background 
                        px-3 py-2 pr-8 text-sm text-foreground shadow-sm transition 
                        placeholder:text-muted-foreground 
@@ -179,7 +183,7 @@ export default function BasicCourseInfoForm({
             </Label>
             <Input
               required
-              defaultValue={data ? data.course.price : ""}
+              defaultValue={defaultValues ? defaultValues.course.price : ""}
               id="price"
               type="number"
               name="price"
@@ -193,7 +197,13 @@ export default function BasicCourseInfoForm({
               Course Thumbnail Image
             </Label>
             <Input
-              required={data ? (data.course.thumbnail ? false : true) : true}
+              required={
+                defaultValues
+                  ? defaultValues.course.thumbnail
+                    ? false
+                    : true
+                  : true
+              }
               name="thumbnail"
               id="courseImage"
               type="file"

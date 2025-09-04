@@ -18,12 +18,28 @@ import {
 
 export default class CourseService {
   public static async getCourses() {
-    return await prisma.course.findMany();
+    let data = await prisma.course.findMany();
+    if (data) {
+      for (let i = 0; i < data.length; ++i) {
+        data[i].thumbnail = await getSignedUrlForThumbnail(
+          data[i].instructorId,
+          data[i].id
+        );
+      }
+    }
+    return data;
   }
   public static async getCourse(courseId: string) {
-    return await prisma.course.findUnique({
+    let data = await prisma.course.findUnique({
       where: { id: courseId },
     });
+    if (data) {
+      data.thumbnail = await getSignedUrlForThumbnail(
+        data.instructorId,
+        data.id
+      );
+    }
+    return data;
   }
   public static async getInstructor(instructorId: string) {
     const user = await prisma.user.findUnique({
@@ -65,7 +81,6 @@ export default class CourseService {
           category: payload.category,
           status: "DRAFT",
           instructorId: userid,
-          thumbnail: `http://localhost:9000/production/${userid}/${payload.id}/thumnail.jpg`,
         },
       });
       const command = new PutObjectCommand({
