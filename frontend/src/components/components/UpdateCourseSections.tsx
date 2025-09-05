@@ -3,8 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { TabsContent } from "@/components/ui/tabs";
-import { Plus, Trash2, ChevronDown, Video } from "lucide-react";
+import { Plus, Trash2, ChevronDown, AlertCircle, Video } from "lucide-react";
 import {
   Collapsible,
   CollapsibleContent,
@@ -12,15 +11,28 @@ import {
 } from "@/components/ui/collapsible";
 import { Label } from "@/components/ui/label";
 import { Progress } from "@/components/ui/progress";
-import { useNavigate } from "react-router";
-import type { SectionInput } from "@/types/types";
-import { useParams } from "react-router";
+import { type SectionFormType, type SectionFormError } from "@/types/types";
 import { v4 } from "uuid";
 
-export default function UpdateCourseSections() {
-  const params = useParams();
-  const [sections, setSections] = useState<SectionInput[]>([]);
-  const navigate = useNavigate();
+export default function UpdateCourseSections({
+  setActiveTab,
+  activeTab,
+  setSections,
+  setSectionsErrors,
+  sections,
+  sectionsErrors,
+}: {
+  setActiveTab: React.Dispatch<React.SetStateAction<number>>;
+  activeTab: number;
+  setSectionsErrors: React.Dispatch<React.SetStateAction<SectionFormError[]>>;
+  setSections: React.Dispatch<React.SetStateAction<SectionFormType[]>>;
+  sections: SectionFormType[];
+  sectionsErrors: SectionFormError[];
+}) {
+  let deletedOnes: { sections: string[]; lectures: string[] } = {
+    sections: [],
+    lectures: [],
+  };
 
   const handleAddSection = () => {
     setSections([
@@ -36,11 +48,24 @@ export default function UpdateCourseSections() {
   const handleAddLecture = (sectionId: string) => {
     const newSections = sections.map((section) => {
       if (section.id === sectionId) {
-        if (section.lectures) {
-          return { ...section, lectures: [...section.lectures] };
-        }
+        return {
+          ...section,
+          lectures: [
+            ...(section.lectures ?? []), // handle undefined gracefully
+            {
+              id: v4(),
+              title: "",
+              description: "",
+              video: null,
+              uploadProgress: 0,
+            },
+          ],
+        };
       }
+      return section;
     });
+
+    setSections(newSections);
   };
 
   const handleDeleteLecture = (sectionId: string, lectureId: string) => {
@@ -56,6 +81,7 @@ export default function UpdateCourseSections() {
           : section
       )
     );
+    deletedOnes.lectures.push(lectureId);
   };
 
   const handleLectureChange = (
@@ -79,37 +105,54 @@ export default function UpdateCourseSections() {
       )
     );
   };
-
-  // const handleVideoUpload = (
-  //   sectionId: string,
-  //   lectureId: string,
-  //   file: File
-  // ) => {
-  //   const lectureToUpdate = sections
-  //     .find((s) => s.id === sectionId)
-  //     ?.lectures.find((l) => l.id === lectureId);
-  //   if (!lectureToUpdate) return;
-
-  //   // Simulate upload progress
-  //   let progress = 0;
-  //   const interval = setInterval(() => {
-  //     progress += 10;
-  //     if (progress <= 100) {
-  //       handleLectureChange(sectionId, lectureId, "uploadProgress", progress);
-  //     } else {
-  //       clearInterval(interval);
-  //       handleLectureChange(
-  //         sectionId,
-  //         lectureId,
-  //         "videoUrl",
-  //         URL.createObjectURL(file)
-  //       );
-  //     }
-  //   }, 100);
-  // };
+  async function handleSubmitSections() {
+    let errors: SectionFormError[] = [];
+    let sectionDataToSend = [];
+    console.log("run function");
+    sections.forEach((section) => {
+      let lecturesError: {}[] = [];
+      section.lectures?.forEach((lecture) => {
+        let lectureError: Record<string, string> = {};
+        if (!lecture.title) {
+          lectureError["title"] = "Title is required";
+        }
+        if (!lecture.description) {
+          lectureError["description"] = "Description is required";
+        }
+        if (!lecture.video) {
+          lectureError["video"] = "Video is required";
+        }
+        if (lectureError) {
+          lectureError["id"] = lecture.id;
+          lecturesError.push(lectureError);
+        }
+      });
+      if (!section.title) {
+        if (lecturesError) {
+          errors.push({
+            id: section.id,
+            lectures: lecturesError,
+            title: "Title is required for section",
+          });
+        } else {
+          errors.push({
+            id: section.id,
+            title: "Title is required for section",
+          });
+        }
+      } else {
+        if (lecturesError) {
+          errors.push({ id: section.id, lectures: lecturesError });
+        }
+      }
+    });
+    if (errors) {
+      setSectionsErrors(errors);
+    }
+  }
+  console.log(sectionsErrors);
   return (
-    <TabsContent value="2" className="space-y-6">
-      {/* <form> */}
+    <div>
       <CardHeader className="flex flex-row items-center justify-between">
         <CardTitle className="text-lg text-gray-900">
           Course Curriculum
@@ -144,6 +187,7 @@ export default function UpdateCourseSections() {
                 className="flex-1 mr-4 bg-white"
                 placeholder={`Section ${sectionIndex + 1} Title`}
               />
+
               <CollapsibleTrigger asChild>
                 <Button variant="ghost" size="icon">
                   <ChevronDown className="h-4 w-4" />
@@ -152,13 +196,27 @@ export default function UpdateCourseSections() {
               <Button
                 variant="ghost"
                 size="icon"
-                onClick={() =>
-                  setSections(sections.filter((s) => s.id !== section.id))
-                }
+                onClick={() => {
+                  setSections(sections.filter((s) => s.id !== section.id));
+                  deletedOnes.sections.push(section.id);
+                }}
               >
                 <Trash2 className="h-4 w-4 text-red-500" />
               </Button>
             </div>
+            {sectionsErrors.map((sectionError) => {
+              if (sectionError.id === section.id) {
+                return sectionError.title ? (
+                  <div className="flex items-center text-red-600 my-2 mx-2">
+                    <AlertCircle className="h-3 w-3" />
+                    <span className="text-xs">{sectionError.title}</span>
+                  </div>
+                ) : (
+                  ""
+                );
+              }
+              return "";
+            })}
             <CollapsibleContent className="mt-4 space-y-4">
               {section.lectures?.map((lecture, lectureIndex) => (
                 <Card key={lecture.id} className="border-gray-200 p-4">
@@ -192,6 +250,23 @@ export default function UpdateCourseSections() {
                         }
                         placeholder="e.g., Introduction to JavaScript"
                       />
+                      {sectionsErrors.map((sectionError) => {
+                        if (sectionError.id === section.id) {
+                          return sectionError.lectures?.map((lec) => {
+                            if (lec.id === lecture.id) {
+                              return lec.title ? (
+                                <div className="flex items-center space-x-1 text-red-600 mx-2 my-2">
+                                  <AlertCircle className="h-3 w-3" />
+                                  <span className="text-xs">{lec.title}</span>
+                                </div>
+                              ) : (
+                                ""
+                              );
+                            }
+                          });
+                        }
+                        return "";
+                      })}
                     </div>
                     <div>
                       <Label className="pb-2">Lecture Description</Label>
@@ -208,34 +283,71 @@ export default function UpdateCourseSections() {
                         placeholder="Briefly describe this lecture."
                         rows={3}
                       />
+                      {sectionsErrors.map((sectionError) => {
+                        if (sectionError.id === section.id) {
+                          return sectionError.lectures?.map((lec) => {
+                            if (lec.id === lecture.id) {
+                              return lec.description ? (
+                                <div className="flex items-center space-x-1 text-red-600 mx-2 my-2">
+                                  <AlertCircle className="h-3 w-3" />
+                                  <span className="text-xs">
+                                    {lec.description}
+                                  </span>
+                                </div>
+                              ) : (
+                                ""
+                              );
+                            }
+                          });
+                        }
+                        return "";
+                      })}
                     </div>
                     <div>
                       <Label className="pb-2">Video File</Label>
                       <Input
                         type="file"
                         accept="video/*"
-                        // onChange={(e) =>
-                        //   e.target.files &&
-                        //   handleVideoUpload(
-                        //     section.id,
-                        //     lecture.id,
-                        //     e.target.files[0]
-                        //   )
-                        // }
+                        onChange={(e) =>
+                          e.target.files &&
+                          handleLectureChange(
+                            section.id,
+                            lecture.id,
+                            "video",
+                            e.target.files[0]
+                          )
+                        }
                       />
-                      {/* {lecture.uploadProgress > 0 &&
+                      {sectionsErrors.map((sectionError) => {
+                        if (sectionError.id === section.id) {
+                          return sectionError.lectures?.map((lec) => {
+                            if (lec.id === lecture.id) {
+                              return lec.video ? (
+                                <div className="flex items-center space-x-1 text-red-600 mx-2 my-2">
+                                  <AlertCircle className="h-3 w-3" />
+                                  <span className="text-xs">{lec.video}</span>
+                                </div>
+                              ) : (
+                                ""
+                              );
+                            }
+                          });
+                        }
+                        return "";
+                      })}
+                      {lecture.uploadProgress > 0 &&
                         lecture.uploadProgress < 100 && (
                           <Progress
                             value={lecture.uploadProgress}
                             className="mt-2 h-2"
                           />
                         )}
-                      {lecture.videoUrl && lecture.uploadProgress === 100 && (
+                      {lecture.video && lecture.uploadProgress === 100 && (
                         <div className="flex items-center gap-2 mt-2 text-sm text-green-600">
                           <Video className="w-4 h-4" />
-                          Video uploaded!
+                          Video Uploaded!
                         </div>
-                      )} */}
+                      )}
                     </div>
                   </div>
                 </Card>
@@ -253,22 +365,18 @@ export default function UpdateCourseSections() {
         ))}
       </CardContent>
       {/* Navigation */}
-      <div className="flex px-6 justify-between pb-6">
-        <Button variant="outline" onClick={() => navigate(0)}>
+      <div className="flex px-6 justify-between py-6">
+        <Button variant="outline" onClick={() => setActiveTab(activeTab - 1)}>
           Back
         </Button>
         <Button
           className="bg-gray-900 hover:bg-gray-800 text-white"
           type="submit"
-          // disabled={!isStepValid()}
-          onClick={() => {
-            alert("Course submitted successfully ✅");
-          }}
+          onClick={handleSubmitSections}
         >
           Submit
         </Button>
       </div>
-      {/* </form> */}
-    </TabsContent>
+    </div>
   );
 }

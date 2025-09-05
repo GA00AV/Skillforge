@@ -1,11 +1,16 @@
 import { useState } from "react";
 import { Card } from "@/components/ui/card";
-import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+
 import BasicCourseInfoForm from "@/components/components/BasicCourseInfoForm";
 import UpdateCourseSections from "@/components/components/UpdateCourseSections";
+import type { SectionFormError, SectionFormType } from "@/types/types";
 
 export default function EditCoursePage() {
   const [activeTab, setActiveTab] = useState(1);
+
+  const [sections, setSections] = useState<SectionFormType[]>([]);
+  const [sectionsErrors, setSectionsErrors] = useState<SectionFormError[]>([]);
   return (
     <div className="p-6 space-y-6">
       <div className="flex items-center justify-between">
@@ -26,13 +31,24 @@ export default function EditCoursePage() {
         </TabsList>
         <Card className="border-gray-200">
           {/* Step 1 */}
-          <BasicCourseInfoForm
-            activeTab={activeTab}
-            setActiveTab={setActiveTab}
-          />
+          <TabsContent value="1" className="space-y-6">
+            <BasicCourseInfoForm
+              activeTab={activeTab}
+              setActiveTab={setActiveTab}
+            />
+          </TabsContent>
 
           {/* Step 2 */}
-          <UpdateCourseSections />
+          <TabsContent value="2" className="space-y-6">
+            <UpdateCourseSections
+              sections={sections}
+              sectionsErrors={sectionsErrors}
+              setSections={setSections}
+              setSectionsErrors={setSectionsErrors}
+              setActiveTab={setActiveTab}
+              activeTab={activeTab}
+            />
+          </TabsContent>
         </Card>
       </Tabs>
     </div>

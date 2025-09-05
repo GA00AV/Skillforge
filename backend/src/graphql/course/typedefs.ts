@@ -77,9 +77,6 @@ input SectionsInput{
     sections: [SectionInput!]!
     courseId: String!
 }
-type data{
-    title: String!
-}
 
 type Query{
     courses: [Course]

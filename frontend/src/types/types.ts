@@ -1,3 +1,5 @@
+import { z } from "zod";
+
 export type BasicCourseReturn = {
   course: {
     category: string;
@@ -21,10 +23,32 @@ export type LectureInput = {
   title: string;
   description: string;
   duration?: number;
-  upload: boolean;
+  upload?: boolean;
 };
 export type SectionInput = {
   id: string;
   title: string;
   lectures?: LectureInput[];
+};
+
+export type SectionFormType = {
+  id: string;
+  title: string;
+  lectures?: {
+    id: string;
+    title: string;
+    description: string;
+    video: File | null;
+    uploadProgress: number;
+  }[];
+};
+export type SectionFormError = {
+  id?: string;
+  title?: string;
+  lectures?: {
+    id?: string;
+    title?: string;
+    description?: string;
+    video?: string;
+  }[];
 };

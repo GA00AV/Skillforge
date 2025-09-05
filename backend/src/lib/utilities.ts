@@ -69,3 +69,10 @@ export async function getSignedUrlForThumbnail(
     })
   );
 }
+
+export function getVideoDuration(file: File) {
+  const video = document.createElement("video");
+  video.src = URL.createObjectURL(file);
+  video.onloadedmetadata = () => video.duration;
+  video.onerror = () => 0;
+}
