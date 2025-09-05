@@ -23,7 +23,7 @@ export async function createLecture(
     s3client,
     new PutObjectCommand({
       Bucket: "tempvideo",
-      Key: `${instructorId}/${courseid}/${sectionid}/${lecture.title}.mp4`,
+      Key: `${instructorId}/${courseid}/${sectionid}/${lecture.id}.mp4`,
     })
   );
   return { lectureId: lecture.id, url };
@@ -50,7 +50,7 @@ export async function updateLecture(
       s3client,
       new PutObjectCommand({
         Bucket: "tempvideo",
-        Key: `${instructorId}/${courseid}/${sectionid}/${lectureInput.title}.mp4`,
+        Key: `${instructorId}/${courseid}/${sectionid}/${lectureInput.id}.mp4`,
       })
     );
     return { url, lectureId: lectureInput.id };

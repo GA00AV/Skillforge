@@ -128,60 +128,90 @@ export default class CourseService {
     if (course) {
       let doUserHasPermissionForCourse = userid === course.instructorId;
       let dataToSend: UploadFiles = { Sections: [] };
+      if (doUserHasPermissionForCourse) {
+        // delete deleted sections
+        for (const secID of payload.deletedSections) {
+          const section = await prisma.section.findUnique({
+            where: { id: secID },
+          });
+          if (section) {
+            const lecture = await prisma.lecture.findMany({
+              where: { sectionID: secID },
+            });
+            if (lecture) {
+              await prisma.lecture.deleteMany({ where: { sectionID: secID } });
+            }
+            await prisma.section.delete({ where: { id: secID } });
+          }
+        }
+        // delete deleted lecture
+        for (const lecID of payload.deletedLectures) {
+          const lecture = await prisma.lecture.findUnique({
+            where: { id: lecID },
+          });
+          if (lecture) {
+            await prisma.lecture.delete({ where: { id: lecID } });
+          }
+        }
+        for (const section of payload.sections) {
+          let Lectures: LectureUpload[] = [];
+          let sectionFromDB = await prisma.section.findUnique({
+            where: { id: section.id, courseId: course.id },
+          });
 
-      payload.sections.forEach(async (section: SectionInput) => {
-        let Lectures: LectureUpload[] = [];
-        let sectionFromDB = await prisma.section.findUnique({
-          where: { id: section.id, courseId: course.id },
-        });
+          // section doesn't exist
+          if (!sectionFromDB) {
+            sectionFromDB = await prisma.section.create({
+              data: {
+                title: section.title,
+                courseId: course.id,
+                id: section.id,
+              },
+            });
+          }
 
-        // section doesn't exist
-        if (!sectionFromDB) {
-          sectionFromDB = await prisma.section.create({
-            data: {
-              title: section.title,
-              courseId: course.id,
-              id: section.id,
-            },
+          // section exist
+
+          for (const lec of section.lectures) {
+            let lecture = await prisma.lecture.findUnique({
+              where: { id: lec.id, sectionID: sectionFromDB.id },
+            });
+            let data: LectureUpload | undefined;
+            if (lecture) {
+              // Lecture exist so update
+              data = await updateLecture(
+                lec,
+                course.id,
+                section.id,
+                course.instructorId
+              );
+            } else {
+              // Lecture don't exist --> Create
+              data = await createLecture(
+                lec,
+                course.id,
+                section.id,
+                course.instructorId
+              );
+            }
+            if (data) {
+              Lectures.push(data);
+            }
+          }
+          // lectures loop ends
+          dataToSend.Sections.push({
+            sectionId: section.id,
+            Lectures: Lectures,
           });
         }
 
-        // section exist
-        section.lectures.forEach(async (lec: LectureInput) => {
-          let lecture = await prisma.lecture.findUnique({
-            where: { id: lec.id, sectionID: sectionFromDB.id },
-          });
-          let data: LectureUpload | undefined;
-          if (lecture) {
-            // Lecture exist so update
-            data = await updateLecture(
-              lec,
-              course.id,
-              section.id,
-              course.instructorId
-            );
-          } else {
-            // Lecture don't exist --> Create
-            data = await createLecture(
-              lec,
-              course.id,
-              section.id,
-              course.instructorId
-            );
-          }
-          if (data) {
-            Lectures.push(data);
-          }
-        });
-
-        // lectures loop ends
-        dataToSend.Sections.push({
-          sectionId: section.id,
-          Lectures: Lectures,
-        });
-      });
-      // section loop ends
-      return { ...dataToSend };
+        // section loop ends
+        return { ...dataToSend };
+      } else {
+        throw Error("Unauthorised");
+      }
+    } else {
+      throw Error("Course doesn't exist");
     }
   }
 }

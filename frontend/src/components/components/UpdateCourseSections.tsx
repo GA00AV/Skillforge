@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -10,30 +10,75 @@ import {
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
 import { Label } from "@/components/ui/label";
-import { Progress } from "@/components/ui/progress";
-import { type SectionFormType, type SectionFormError } from "@/types/types";
+import {
+  type SectionFormType,
+  type SectionFormError,
+  type UploadSections,
+  type CourseSectionsReturn,
+  type UploadVideosType,
+  type LectureType,
+} from "@/types/types";
 import { v4 } from "uuid";
-
+import { useParams } from "react-router";
+import { getVideoDuration, getVideoFile, uploadData } from "@/lib/utils";
+import {
+  useMutation as useMutationGraphQL,
+  useQuery as useQueryGraphQL,
+} from "@apollo/client/react";
+import {
+  GET_COURSE_SECTIONS,
+  UPLOAD_COURSE_SECTIONS,
+} from "@/lib/graphqlClient";
+import LoadingScreen from "./LoadingScreen";
+import ErrorForComponent from "./ErrorForComponent";
+const deletedOnes: { sections: string[]; lectures: string[] } = {
+  sections: [],
+  lectures: [],
+};
 export default function UpdateCourseSections({
   setActiveTab,
   activeTab,
-  setSections,
-  setSectionsErrors,
-  sections,
-  sectionsErrors,
 }: {
   setActiveTab: React.Dispatch<React.SetStateAction<number>>;
   activeTab: number;
-  setSectionsErrors: React.Dispatch<React.SetStateAction<SectionFormError[]>>;
-  setSections: React.Dispatch<React.SetStateAction<SectionFormType[]>>;
-  sections: SectionFormType[];
-  sectionsErrors: SectionFormError[];
 }) {
-  let deletedOnes: { sections: string[]; lectures: string[] } = {
-    sections: [],
-    lectures: [],
-  };
+  let params = useParams();
 
+  const [sections, setSections] = useState<SectionFormType[]>([]);
+  const [sectionsErrors, setSectionsErrors] = useState<SectionFormError[]>([]);
+  const { data, loading, error } = useQueryGraphQL<CourseSectionsReturn>(
+    GET_COURSE_SECTIONS,
+    {
+      variables: { id: `${params.courseid}` },
+    }
+  );
+  const [updateSections, { loading: SubmitLoading, error: SubmitError }] =
+    useMutationGraphQL<UploadVideosType>(UPLOAD_COURSE_SECTIONS);
+
+  useEffect(() => {
+    async function setData() {
+      if (data) {
+        if (data.course) {
+          let sections: SectionFormType[] = [];
+          for (const section of data.course.sections) {
+            const lectures = [];
+            for (const lec of section.lectures) {
+              lectures.push({
+                id: lec.id,
+                title: lec.title,
+                description: lec.description,
+                upload: false,
+                video: await getVideoFile(lec.src, lec.title),
+              });
+            }
+            sections.push({ id: section.id, title: section.title, lectures });
+          }
+          setSections(sections);
+        }
+      }
+    }
+    setData();
+  }, [data]);
   const handleAddSection = () => {
     setSections([
       ...sections,
@@ -57,7 +102,7 @@ export default function UpdateCourseSections({
               title: "",
               description: "",
               video: null,
-              uploadProgress: 0,
+              upload: true,
             },
           ],
         };
@@ -83,7 +128,16 @@ export default function UpdateCourseSections({
     );
     deletedOnes.lectures.push(lectureId);
   };
-
+  const getLecture = (lectureid: string) => {
+    for (const section of sections) {
+      for (const lec of section.lectures) {
+        if (lec.id === lectureid) {
+          return lec;
+        }
+      }
+    }
+    return null;
+  };
   const handleLectureChange = (
     sectionId: string,
     lectureId: string,
@@ -105,13 +159,31 @@ export default function UpdateCourseSections({
       )
     );
   };
+  const handleVideoChange = (
+    sectionID: string,
+    lectureID: string,
+    data: File | null
+  ) => {
+    setSections(
+      sections.map((section) =>
+        section.id === sectionID
+          ? {
+              ...section,
+              lectures: section.lectures?.map((lecture) =>
+                lecture.id === lectureID
+                  ? { ...lecture, ...{ upload: true, video: data } }
+                  : lecture
+              ),
+            }
+          : section
+      )
+    );
+  };
   async function handleSubmitSections() {
     let errors: SectionFormError[] = [];
-    let sectionDataToSend = [];
-    console.log("run function");
-    sections.forEach((section) => {
+    for (const section of sections) {
       let lecturesError: {}[] = [];
-      section.lectures?.forEach((lecture) => {
+      for (const lecture of section.lectures) {
         let lectureError: Record<string, string> = {};
         if (!lecture.title) {
           lectureError["title"] = "Title is required";
@@ -122,11 +194,11 @@ export default function UpdateCourseSections({
         if (!lecture.video) {
           lectureError["video"] = "Video is required";
         }
-        if (lectureError) {
+        if (Object.keys(lectureError).length !== 0) {
           lectureError["id"] = lecture.id;
           lecturesError.push(lectureError);
         }
-      });
+      }
       if (!section.title) {
         if (lecturesError) {
           errors.push({
@@ -141,19 +213,102 @@ export default function UpdateCourseSections({
           });
         }
       } else {
-        if (lecturesError) {
+        if (lecturesError.length !== 0) {
           errors.push({ id: section.id, lectures: lecturesError });
         }
       }
-    });
-    if (errors) {
+    }
+    if (errors.length !== 0) {
       setSectionsErrors(errors);
+    } else {
+      // everything fine
+      let sectionDataToSend: UploadSections = {
+        courseId: `${params.courseid}`,
+        deletedLectures: deletedOnes.lectures,
+        deletedSections: deletedOnes.sections,
+        sections: [],
+      };
+      let uploadStatusToChange: Record<string, string[]> = {};
+      for (const s of sections) {
+        let lectures: LectureType[] = [];
+        for (const l of s.lectures) {
+          lectures.push({
+            id: l.id,
+            title: l.title,
+            description: l.description,
+            upload: l.upload,
+            duration: Math.round(await getVideoDuration(l.video)),
+          });
+        }
+        sectionDataToSend.sections.push({
+          id: s.id,
+          title: s.title,
+          lectures,
+        });
+      }
+      setSectionsErrors([]);
+      const result = await updateSections({
+        variables: { data: sectionDataToSend },
+      });
+      if (result.data) {
+        for (const sec of result.data.updateSections.Sections) {
+          for (const lecture of sec.Lectures) {
+            const lec = getLecture(lecture.lectureId);
+            if (lec) {
+              try {
+                await uploadData(lecture.url, lec.video);
+                if (uploadStatusToChange[sec.sectionId]) {
+                  uploadStatusToChange[sec.sectionId].push(lec.id);
+                } else {
+                  uploadStatusToChange[sec.sectionId] = [lec.id];
+                }
+              } catch {
+                continue;
+              }
+            }
+          }
+        }
+      }
+      const newSections: SectionFormType[] = [];
+      for (const section of sections) {
+        if (Object.keys(uploadStatusToChange).includes(section.id)) {
+          let lectures: {
+            id: string;
+            title: string;
+            description: string;
+            video: null | File;
+            upload: boolean;
+          }[] = [];
+          for (const lec of section.lectures) {
+            if (uploadStatusToChange[section.id].includes(lec.id)) {
+              lectures.push({ ...lec, upload: false });
+            } else {
+              lectures.push(lec);
+            }
+          }
+          newSections.push({ ...section, lectures: lectures });
+        } else {
+          newSections.push(section);
+        }
+      }
+      setSections(newSections);
     }
   }
-  console.log(sectionsErrors);
+
+  if (loading) {
+    return <LoadingScreen />;
+  }
+  if (error) {
+    return <ErrorForComponent error={error.message} name={error.name} />;
+  }
+  if (SubmitError) {
+    return (
+      <ErrorForComponent error={SubmitError.message} name={SubmitError.name} />
+    );
+  }
   return (
     <div>
-      <CardHeader className="flex flex-row items-center justify-between">
+      <CardHeader className="flex flex-row items-center justify-between mb-2">
         <CardTitle className="text-lg text-gray-900">
           Course Curriculum
         </CardTitle>
@@ -207,7 +362,10 @@ export default function UpdateCourseSections({
             {sectionsErrors.map((sectionError) => {
               if (sectionError.id === section.id) {
                 return sectionError.title ? (
-                  <div className="flex items-center text-red-600 my-2 mx-2">
+                  <div
+                    className="flex items-center text-red-600 my-2 mx-2"
+                    key={Math.random()}
+                  >
                     <AlertCircle className="h-3 w-3" />
                     <span className="text-xs">{sectionError.title}</span>
                   </div>
@@ -255,7 +413,10 @@ export default function UpdateCourseSections({
                           return sectionError.lectures?.map((lec) => {
                             if (lec.id === lecture.id) {
                               return lec.title ? (
-                                <div className="flex items-center space-x-1 text-red-600 mx-2 my-2">
+                                <div
+                                  className="flex items-center space-x-1 text-red-600 mx-2 my-2"
+                                  key={Math.random()}
+                                >
                                   <AlertCircle className="h-3 w-3" />
                                   <span className="text-xs">{lec.title}</span>
                                 </div>
@@ -288,7 +449,10 @@ export default function UpdateCourseSections({
                           return sectionError.lectures?.map((lec) => {
                             if (lec.id === lecture.id) {
                               return lec.description ? (
-                                <div className="flex items-center space-x-1 text-red-600 mx-2 my-2">
+                                <div
+                                  className="flex items-center space-x-1 text-red-600 mx-2 my-2"
+                                  key={Math.random()}
+                                >
                                   <AlertCircle className="h-3 w-3" />
                                   <span className="text-xs">
                                     {lec.description}
@@ -308,22 +472,25 @@ export default function UpdateCourseSections({
                       <Input
                         type="file"
                         accept="video/*"
-                        onChange={(e) =>
-                          e.target.files &&
-                          handleLectureChange(
-                            section.id,
-                            lecture.id,
-                            "video",
-                            e.target.files[0]
-                          )
-                        }
+                        onChange={(e) => {
+                          if (e.target.files) {
+                            handleVideoChange(
+                              section.id,
+                              lecture.id,
+                              e.target.files[0]
+                            );
+                          }
+                        }}
                       />
                       {sectionsErrors.map((sectionError) => {
                         if (sectionError.id === section.id) {
                           return sectionError.lectures?.map((lec) => {
                             if (lec.id === lecture.id) {
                               return lec.video ? (
-                                <div className="flex items-center space-x-1 text-red-600 mx-2 my-2">
+                                <div
+                                  className="flex items-center space-x-1 text-red-600 mx-2 mt-2"
+                                  key={Math.random()}
+                                >
                                   <AlertCircle className="h-3 w-3" />
                                   <span className="text-xs">{lec.video}</span>
                                 </div>
@@ -335,17 +502,10 @@ export default function UpdateCourseSections({
                         }
                         return "";
                       })}
-                      {lecture.uploadProgress > 0 &&
-                        lecture.uploadProgress < 100 && (
-                          <Progress
-                            value={lecture.uploadProgress}
-                            className="mt-2 h-2"
-                          />
-                        )}
-                      {lecture.video && lecture.uploadProgress === 100 && (
-                        <div className="flex items-center gap-2 mt-2 text-sm text-green-600">
-                          <Video className="w-4 h-4" />
-                          Video Uploaded!
+                      {lecture.video && !lecture.upload && (
+                        <div className="flex items-center gap-2 text-sm text-green-600">
+                          <Video className="w-4 h-4 rounded-lg" />
+                          {`${lecture.title} is uploaded`}
                         </div>
                       )}
                     </div>
@@ -370,11 +530,12 @@ export default function UpdateCourseSections({
           Back
         </Button>
         <Button
+          disabled={SubmitLoading}
           className="bg-gray-900 hover:bg-gray-800 text-white"
           type="submit"
           onClick={handleSubmitSections}
         >
-          Submit
+          {SubmitLoading ? "Submiting" : "Submit"}
         </Button>
       </div>
     </div>

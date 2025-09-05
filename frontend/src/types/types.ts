@@ -1,5 +1,3 @@
-import { z } from "zod";
-
 export type BasicCourseReturn = {
   course: {
     category: string;
@@ -10,6 +8,20 @@ export type BasicCourseReturn = {
     title: string;
   };
 };
+export type CourseSectionsReturn = {
+  course: {
+    sections: {
+      id: string;
+      title: string;
+      lectures: {
+        id: string;
+        title: string;
+        description: string;
+        src: string;
+      }[];
+    }[];
+  };
+};
 
 export type ThumbnailUploadUrl = {
   updateCourseBasicInfo: {
@@ -17,29 +29,23 @@ export type ThumbnailUploadUrl = {
     url: string | null;
   };
 };
-
-export type LectureInput = {
-  id: string;
-  title: string;
-  description: string;
-  duration?: number;
-  upload?: boolean;
+export type UploadVideosType = {
+  updateSections: {
+    Sections: {
+      sectionId: string;
+      Lectures: { lectureId: string; url: string }[];
+    }[];
+  };
 };
-export type SectionInput = {
-  id: string;
-  title: string;
-  lectures?: LectureInput[];
-};
-
 export type SectionFormType = {
   id: string;
   title: string;
-  lectures?: {
+  lectures: {
     id: string;
     title: string;
     description: string;
-    video: File | null;
-    uploadProgress: number;
+    video: null | File;
+    upload: boolean;
   }[];
 };
 export type SectionFormError = {
@@ -51,4 +57,22 @@ export type SectionFormError = {
     description?: string;
     video?: string;
   }[];
+};
+
+export type UploadSections = {
+  sections: {
+    id: string;
+    title: string;
+    lectures: LectureType[];
+  }[];
+  courseId: string;
+  deletedLectures: string[];
+  deletedSections: string[];
+};
+export type LectureType = {
+  id: string;
+  title: string;
+  description: string;
+  duration: number;
+  upload: boolean;
 };

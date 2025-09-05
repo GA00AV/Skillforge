@@ -19,6 +19,25 @@ const GET_BASIC_COURSEINFO = gql`
     }
   }
 `;
+
+const GET_COURSE_SECTIONS = gql`
+  query GetSections($id: String!) {
+    course(id: $id) {
+      sections {
+        id
+        title
+        lectures {
+          id
+          title
+          description
+          duration
+          src
+        }
+      }
+    }
+  }
+`;
+
 const UPLOAD_BASIC_COURSEINFO = gql`
   mutation UpdateCourseBasicInfo($data: CourseInput!) {
     updateCourseBasicInfo(data: $data) {
@@ -27,4 +46,23 @@ const UPLOAD_BASIC_COURSEINFO = gql`
     }
   }
 `;
-export { graphQLclient, GET_BASIC_COURSEINFO, UPLOAD_BASIC_COURSEINFO };
+const UPLOAD_COURSE_SECTIONS = gql`
+  mutation UpdateSections($data: SectionsInput!) {
+    updateSections(data: $data) {
+      Sections {
+        sectionId
+        Lectures {
+          lectureId
+          url
+        }
+      }
+    }
+  }
+`;
+export {
+  graphQLclient,
+  GET_BASIC_COURSEINFO,
+  UPLOAD_BASIC_COURSEINFO,
+  GET_COURSE_SECTIONS,
+  UPLOAD_COURSE_SECTIONS,
+};

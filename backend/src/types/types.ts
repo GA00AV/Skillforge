@@ -34,6 +34,8 @@ export type SectionInput = {
 export type SectionsInput = {
   sections: SectionInput[];
   courseId: string;
+  deletedLectures: string[];
+  deletedSections: string[];
 };
 export type ThumbnailUploadUrl = {
   courseid: string;

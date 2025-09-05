@@ -76,6 +76,8 @@ input SectionInput{
 input SectionsInput{
     sections: [SectionInput!]!
     courseId: String!
+    deletedLectures:[String]
+    deletedSections:[String]
 }
 
 type Query{

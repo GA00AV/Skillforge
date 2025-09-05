@@ -1,4 +1,9 @@
-import { CourseInput, SectionsInput } from "../../types/types.js";
+import {
+  CourseInput,
+  SectionsInput,
+  SectionsUpload,
+  UploadFiles,
+} from "../../types/types.js";
 import CourseService from "../services/Course.js";
 
 let Query = {
@@ -59,4 +64,22 @@ let Section = {
     return await CourseService.getLectures(parent.id);
   },
 };
-export const resolvers = { Query, Course, Section, Mutation };
+
+let UploadFiles = {
+  Sections: async (parent: UploadFiles) => {
+    return parent.Sections;
+  },
+};
+const SectionsUpload = {
+  Lectures: async (parent: SectionsUpload) => {
+    return parent.Lectures;
+  },
+};
+export const resolvers = {
+  Query,
+  Course,
+  Section,
+  Mutation,
+  UploadFiles,
+  SectionsUpload,
+};

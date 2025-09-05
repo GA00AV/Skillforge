@@ -4,13 +4,10 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 
 import BasicCourseInfoForm from "@/components/components/BasicCourseInfoForm";
 import UpdateCourseSections from "@/components/components/UpdateCourseSections";
-import type { SectionFormError, SectionFormType } from "@/types/types";
 
 export default function EditCoursePage() {
   const [activeTab, setActiveTab] = useState(1);
 
-  const [sections, setSections] = useState<SectionFormType[]>([]);
-  const [sectionsErrors, setSectionsErrors] = useState<SectionFormError[]>([]);
   return (
     <div className="p-6 space-y-6">
       <div className="flex items-center justify-between">
@@ -41,10 +38,6 @@ export default function EditCoursePage() {
           {/* Step 2 */}
           <TabsContent value="2" className="space-y-6">
             <UpdateCourseSections
-              sections={sections}
-              sectionsErrors={sectionsErrors}
-              setSections={setSections}
-              setSectionsErrors={setSectionsErrors}
               setActiveTab={setActiveTab}
               activeTab={activeTab}
             />

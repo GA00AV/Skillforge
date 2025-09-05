@@ -27,7 +27,7 @@ export default function App() {
           <Route element={<HomeLayout />}>
             <Route path="/" element={<HomePage />} />
             <Route path="/search" element={<SearchPage />} />
-            <Route path="/course/:id" element={<CoursePage />} />
+            <Route path="/course/:courseid" element={<CoursePage />} />
           </Route>
           <Route element={<LoggedOutRequiredLayout />}>
             <Route path="/login" element={<LoginPage />} />

@@ -2,7 +2,6 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { TabsContent } from "@/components/ui/tabs";
 import { Label } from "@/components/ui/label";
 import { useState, type FormEvent } from "react";
 import {
@@ -45,7 +44,7 @@ export default function BasicCourseInfoForm({
   );
   const [
     updateCourseBasicInfo,
-    { data: mutationData, loading: mutationLoading, error: mutationError },
+    { loading: mutationLoading, error: mutationError },
   ] = useMutationGraphQl<ThumbnailUploadUrl>(UPLOAD_BASIC_COURSEINFO);
   const [courseImage, setCourseImage] = useState<File | null>(null);
   let defaultValues: BasicCourseReturn | undefined;
