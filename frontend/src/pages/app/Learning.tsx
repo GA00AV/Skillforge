@@ -22,8 +22,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { Link } from "react-router";
 
 export default function MyLearningPage() {
-  const [searchQuery, setSearchQuery] = useState("");
-  const [filterStatus, setFilterStatus] = useState("all");
+  const [searchQuery] = useState("");
+  const [filterStatus] = useState("all");
   const [courseToReview, setCourseToReview] = useState<number | null>(null);
   const [reviewText, setReviewText] = useState("");
   const [currentRating, setCurrentRating] = useState(0);

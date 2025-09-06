@@ -84,11 +84,12 @@ export default class CourseService {
         },
       });
       const command = new PutObjectCommand({
-        Bucket: "production",
+        Bucket: process.env.PRODUCTION_BUCKET || "production",
         Key: `${course.instructorId}/${course.id}/thumnail.jpg`,
         ACL: "public-read",
       });
-      const url = await getSignedUrl(s3client, command);
+      let url = await getSignedUrl(s3client, command);
+
       return { courseid: course.id, url };
     }
 
@@ -105,11 +106,12 @@ export default class CourseService {
       });
       if (payload.thumbnail) {
         const command = new PutObjectCommand({
-          Bucket: "production",
+          Bucket: process.env.PRODUCTION_BUCKET || "production",
           Key: `${course.instructorId}/${course.id}/thumnail.jpg`,
           ACL: "public-read",
         });
-        const url = await getSignedUrl(s3client, command);
+        let url = await getSignedUrl(s3client, command);
+
         return {
           courseid: course.id,
           url,

@@ -22,10 +22,11 @@ export async function createLecture(
   let url = await getSignedUrl(
     s3client,
     new PutObjectCommand({
-      Bucket: "tempvideo",
+      Bucket: process.env.TEMP_VIDEO_BUCKET || "tempvideo",
       Key: `${instructorId}/${courseid}/${sectionid}/${lecture.id}.mp4`,
     })
   );
+
   return { lectureId: lecture.id, url };
 }
 export async function updateLecture(
@@ -49,7 +50,7 @@ export async function updateLecture(
     let url = await getSignedUrl(
       s3client,
       new PutObjectCommand({
-        Bucket: "tempvideo",
+        Bucket: process.env.TEMP_VIDEO_BUCKET || "tempvideo",
         Key: `${instructorId}/${courseid}/${sectionid}/${lectureInput.id}.mp4`,
       })
     );
@@ -64,7 +65,7 @@ export async function getSignedUrlForThumbnail(
   return await getSignedUrl(
     s3client,
     new GetObjectCommand({
-      Bucket: "production",
+      Bucket: process.env.PRODUCTION_BUCKET || "production",
       Key: `${instructorId}/${courseid}/thumnail.jpg`,
     })
   );

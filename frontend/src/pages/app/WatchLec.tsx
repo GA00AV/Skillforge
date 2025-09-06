@@ -1,5 +1,3 @@
-"use client";
-
 import { useState, useRef, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -142,16 +140,13 @@ const courseData = {
 export default function WatchCoursePage() {
   const [isPlaying, setIsPlaying] = useState(false);
   const [currentTime, setCurrentTime] = useState(0);
-  const [duration, setDuration] = useState(1125); // 18:45 in seconds
+  const [duration] = useState(1125); // 18:45 in seconds
   const [isMuted, setIsMuted] = useState(false);
   const [playbackSpeed, setPlaybackSpeed] = useState(1);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [expandedSections, setExpandedSections] = useState<string[]>([
     "section-2",
   ]);
-  const [notes, setNotes] = useState("");
-  const [newNote, setNewNote] = useState("");
-
   const videoRef = useRef<HTMLDivElement>(null);
 
   // Simulate video progress

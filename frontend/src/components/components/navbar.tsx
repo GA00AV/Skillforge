@@ -1,9 +1,6 @@
-"use client";
-
 import { useState } from "react";
 import {
   Search,
-  User,
   Menu,
   X,
   LogOutIcon,
@@ -27,7 +24,7 @@ import useUserQuery from "@/hooks/useUserQuery";
 
 export function Navbar() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const { isLoading, isError, data, error } = useUserQuery();
+  const { isLoading, isError, data } = useUserQuery();
   const queryclient = useQueryClient();
   const logoutMutator = useMutation({
     mutationFn: () => logout("http://localhost:3000/signout"),

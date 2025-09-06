@@ -16,16 +16,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import {
-  Plus,
-  MoreVertical,
-  Edit,
-  Eye,
-  Users,
-  DollarSign,
-  Star,
-  BarChart3,
-} from "lucide-react";
+import { Plus, MoreVertical, Edit, BarChart3 } from "lucide-react";
 import { Link, useNavigate } from "react-router";
 import { v4 as uuidv4 } from "uuid";
 

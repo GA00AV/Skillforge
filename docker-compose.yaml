@@ -1,0 +1,77 @@
+version: "3.9"
+services:
+  backend:
+    build: ./backend/
+    image: skillforgebackend
+    container_name: backend
+    ports:
+      - "3000:3000"
+    environment:
+      DATABASE_URL: "postgresql://postgres:12345678@database:5432/skillforge"
+      PORT: 3000
+      MAX_SESSION_TIME_IN_SEC: 1800
+      PUBLIC_STORAGE_URL: "http://localhost:9000"
+      STORAGE_ID: "minioadmin"
+      STORAGE_PASSWORD: "minioadmin"
+      REDIS_URL: "redis://redis:6379"
+      TEMP_VIDEO_BUCKET: "tempvideo"
+      PRODUCTION_BUCKET: "production"
+    depends_on:
+      - database
+      - redis
+      - minio
+      # - rabbitmq
+  database:
+    image: postgres
+    container_name: postgres
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: 12345678
+    volumes:
+      - db_data:/var/lib/postgresql/data
+  redis:
+    image: redis
+    container_name: redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+
+  minio:
+    image: quay.io/minio/minio
+    container_name: minio
+    command: server /data --console-address ":9090"
+    ports:
+      - "9000:9000"
+      - "9090:9090"
+    environment:
+      MINIO_ROOT_USER: minioadmin
+      MINIO_ROOT_PASSWORD: minioadmin
+      # MINIO_NOTIFY_AMQP_ENABLE: "on"
+      # MINIO_NOTIFY_AMQP_URL: "amqp://guest:guest@rabbitmq:5672"
+      # MINIO_NOTIFY_AMQP_EXCHANGE: "minio_exchange"
+      # MINIO_NOTIFY_AMQP_EXCHANGE_TYPE: "fanout"
+      # MINIO_NOTIFY_AMQP_ROUTING_KEY: "minio_routing"
+      # MINIO_NOTIFY_AMQP_DURABLE: "on"
+    volumes:
+      - minio_data:/data
+
+  # rabbitmq:
+  #   image: rabbitmq
+  #   container_name: rabbitmq
+  #   ports:
+  #     - "5672:5672" # AMQP port
+  #     - "15672:15672" # Management UI port
+  #   environment:
+  #     RABBITMQ_DEFAULT_USER: guest
+  #     RABBITMQ_DEFAULT_PASS: guest
+  #   volumes:
+  #     - rabbitmq_data:/var/lib/rabbitmq
+
+volumes:
+  minio_data:
+  db_data:
+  redis_data:
+  rabbitmq_data:

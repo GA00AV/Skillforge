@@ -1,7 +1,6 @@
 import {
   BookOpen,
   Home,
-  Settings,
   PlayCircle,
   MessageSquare,
   BotMessageSquareIcon,

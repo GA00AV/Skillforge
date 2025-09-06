@@ -80,10 +80,13 @@ export default function BasicCourseInfoForm({
       setActiveTab(activeTab + 1);
       return;
     }
+    console.log("upload error", ThumbnailUploadError);
+    console.log("mutation error", mutationError);
     let result = await updateCourseBasicInfo({
       variables: { data: payload },
     });
     if (result.data) {
+      console.log("result is there", result.data);
       if (result.data.updateCourseBasicInfo.url) {
         thumbnailUploader({
           url: result.data.updateCourseBasicInfo.url,

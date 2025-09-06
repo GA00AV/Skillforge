@@ -1,19 +1,7 @@
-import { useState } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import {
-  LineChart,
-  Line,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  ResponsiveContainer,
-} from "recharts";
+import { Card, CardContent } from "@/components/ui/card";
 import { Users, DollarSign, Star } from "lucide-react";
 
 export default function CourseAnalyticsPage() {
-  const [timeRange, setTimeRange] = useState("30d");
-
   const courseData = {
     title: "JavaScript for Beginners",
     totalStudents: 1250,
@@ -23,26 +11,6 @@ export default function CourseAnalyticsPage() {
     averageWatchTime: 28.5,
     completionRate: 67,
   };
-
-  const enrollmentData = [
-    { date: "Jan 1", students: 45 },
-    { date: "Jan 8", students: 52 },
-    { date: "Jan 15", students: 78 },
-    { date: "Jan 22", students: 65 },
-    { date: "Jan 29", students: 89 },
-    { date: "Feb 5", students: 94 },
-    { date: "Feb 12", students: 112 },
-  ];
-
-  const revenueData = [
-    { date: "Jan 1", revenue: 675 },
-    { date: "Jan 8", revenue: 780 },
-    { date: "Jan 15", revenue: 1170 },
-    { date: "Jan 22", revenue: 975 },
-    { date: "Jan 29", revenue: 1335 },
-    { date: "Feb 5", revenue: 1410 },
-    { date: "Feb 12", revenue: 1680 },
-  ];
 
   const stats = [
     {

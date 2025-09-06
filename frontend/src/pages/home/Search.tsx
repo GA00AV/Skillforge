@@ -21,7 +21,6 @@ import { Star, Users, Clock, Search, Filter } from "lucide-react";
 export default function SearchPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("all");
-  const [selectedLevel, setSelectedLevel] = useState("all");
   const [priceRange, setPriceRange] = useState("all");
 
   const courses = [

@@ -5,7 +5,9 @@ const globalForRedis = globalThis as unknown as {
   redis: ReturnType<typeof createClient>;
 };
 if (!globalForRedis.redis) {
-  redis = createClient();
+  redis = createClient({
+    url: process.env.REDIS_URL || "redis://localhost:6379",
+  });
 } else {
   redis = globalForRedis.redis;
 }
