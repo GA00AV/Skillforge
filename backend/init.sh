@@ -1,6 +1,5 @@
 #!/bin/sh
-
-echo "Waiting for 10 secs for postgres to be ready"
+echo "Waiting 10 sec for Postgres..."
 sleep 10
 
 npx prisma generate

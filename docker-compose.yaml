@@ -20,7 +20,7 @@ services:
       - database
       - redis
       - minio
-      # - rabbitmq
+      - rabbitmq
   database:
     image: postgres
     container_name: postgres
@@ -40,38 +40,44 @@ services:
       - redis_data:/data
 
   minio:
-    image: quay.io/minio/minio
+    build: ./minio/
+    image: minio
     container_name: minio
-    command: server /data --console-address ":9090"
     ports:
       - "9000:9000"
       - "9090:9090"
     environment:
+      API_PORT: 9000
+      UI_PORT: 9090
       MINIO_ROOT_USER: minioadmin
       MINIO_ROOT_PASSWORD: minioadmin
-      # MINIO_NOTIFY_AMQP_ENABLE: "on"
-      # MINIO_NOTIFY_AMQP_URL: "amqp://guest:guest@rabbitmq:5672"
-      # MINIO_NOTIFY_AMQP_EXCHANGE: "minio_exchange"
-      # MINIO_NOTIFY_AMQP_EXCHANGE_TYPE: "fanout"
-      # MINIO_NOTIFY_AMQP_ROUTING_KEY: "minio_routing"
-      # MINIO_NOTIFY_AMQP_DURABLE: "on"
+      MINIO_NOTIFY_AMQP_URL: amqp://guest:guest@rabbitmq:5672
+      MINIO_NOTIFY_AMQP_EXCHANGE: minio_exchange
+      MINIO_NOTIFY_AMQP_EXCHANGE_TYPE: "fanout"
+      MINIO_NOTIFY_AMQP_ROUTING_KEY: minio_routing
+      EVENT_BUCKET: tempvideo
+      PRODUCTION_BUCKET: production
     volumes:
       - minio_data:/data
+    depends_on:
+      - rabbitmq
 
-  # rabbitmq:
-  #   image: rabbitmq
-  #   container_name: rabbitmq
-  #   ports:
-  #     - "5672:5672" # AMQP port
-  #     - "15672:15672" # Management UI port
-  #   environment:
-  #     RABBITMQ_DEFAULT_USER: guest
-  #     RABBITMQ_DEFAULT_PASS: guest
-  #   volumes:
-  #     - rabbitmq_data:/var/lib/rabbitmq
+  rabbitmq:
+    image: rabbitmq:3-management
+    container_name: rabbitmq
+    ports:
+      - "5672:5672" # AMQP port
+      - "15672:15672" # Management UI port
+    environment:
+      RABBITMQ_DEFAULT_USER: guest
+      RABBITMQ_DEFAULT_PASS: guest
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
+      - rabbitmq_logs:/var/log/rabbitmq
 
 volumes:
   minio_data:
   db_data:
   redis_data:
   rabbitmq_data:
+  rabbitmq_logs:

@@ -58,19 +58,6 @@ export async function updateLecture(
   }
 }
 
-export async function getSignedUrlForThumbnail(
-  instructorId: string,
-  courseid: string
-) {
-  return await getSignedUrl(
-    s3client,
-    new GetObjectCommand({
-      Bucket: process.env.PRODUCTION_BUCKET || "production",
-      Key: `${instructorId}/${courseid}/thumnail.jpg`,
-    })
-  );
-}
-
 export function getVideoDuration(file: File) {
   const video = document.createElement("video");
   video.src = URL.createObjectURL(file);

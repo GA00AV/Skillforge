@@ -92,6 +92,8 @@ export default function BasicCourseInfoForm({
           url: result.data.updateCourseBasicInfo.url,
           fileUpload: courseImage,
         });
+      } else {
+        setActiveTab(activeTab + 1);
       }
     }
   }

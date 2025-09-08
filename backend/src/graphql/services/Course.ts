@@ -1,45 +1,23 @@
 import { PutObjectCommand } from "@aws-sdk/client-s3";
 import { prisma } from "../../lib/prisma.js";
-import {
-  createLecture,
-  getSignedUrlForThumbnail,
-  updateLecture,
-} from "../../lib/utilities.js";
+import { createLecture, updateLecture } from "../../lib/utilities.js";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import { s3client } from "../../lib/s3Client.js";
 import {
   CourseInput,
-  LectureInput,
   LectureUpload,
-  SectionInput,
   SectionsInput,
   UploadFiles,
 } from "../../types/types.js";
 
 export default class CourseService {
   public static async getCourses() {
-    let data = await prisma.course.findMany();
-    if (data) {
-      for (let i = 0; i < data.length; ++i) {
-        data[i].thumbnail = await getSignedUrlForThumbnail(
-          data[i].instructorId,
-          data[i].id
-        );
-      }
-    }
-    return data;
+    return await prisma.course.findMany();
   }
   public static async getCourse(courseId: string) {
-    let data = await prisma.course.findUnique({
+    return await prisma.course.findUnique({
       where: { id: courseId },
     });
-    if (data) {
-      data.thumbnail = await getSignedUrlForThumbnail(
-        data.instructorId,
-        data.id
-      );
-    }
-    return data;
   }
   public static async getInstructor(instructorId: string) {
     const user = await prisma.user.findUnique({
@@ -81,6 +59,11 @@ export default class CourseService {
           category: payload.category,
           status: "DRAFT",
           instructorId: userid,
+          thumbnail: `${
+            process.env.PUBLIC_STORAGE_URL || "http://localhost:9000"
+          }/${process.env.PRODUCTION_BUCKET || "production"}/${userid}/${
+            payload.id
+          }/thumnail.jpg`,
         },
       });
       const command = new PutObjectCommand({
