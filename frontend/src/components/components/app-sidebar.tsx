@@ -37,15 +37,9 @@ import useUserQuery from "@/hooks/useUserQuery";
 const links = {
   navMain: [
     {
-      title: "Dashboard",
+      title: "Home",
       url: "/app",
       icon: Home,
-    },
-
-    {
-      title: "My Learning",
-      url: "/app/learn",
-      icon: PlayCircle,
     },
   ],
   instructor: [
@@ -53,18 +47,6 @@ const links = {
       title: "My Courses",
       url: "/app/my-courses",
       icon: BookOpen,
-    },
-    {
-      title: "Send Message",
-      url: "/app/message",
-      icon: BotMessageSquareIcon,
-    },
-  ],
-  platform: [
-    {
-      title: "Notifications",
-      url: "/app/notifications",
-      icon: MessageSquare,
     },
   ],
 };
@@ -134,26 +116,6 @@ export function AppSidebar() {
           <SidebarGroupContent>
             <SidebarMenu>
               {links.instructor.map((item) => {
-                let isActive = item.url === location.pathname;
-                return (
-                  <SidebarMenuItem key={item.title}>
-                    <SidebarMenuButton asChild isActive={isActive}>
-                      <Link to={item.url}>
-                        <item.icon />
-                        <span>{item.title}</span>
-                      </Link>
-                    </SidebarMenuButton>
-                  </SidebarMenuItem>
-                );
-              })}
-            </SidebarMenu>
-          </SidebarGroupContent>
-        </SidebarGroup>
-        <SidebarGroup>
-          <SidebarGroupLabel>Platform</SidebarGroupLabel>
-          <SidebarGroupContent>
-            <SidebarMenu>
-              {links.platform.map((item) => {
                 let isActive = item.url === location.pathname;
                 return (
                   <SidebarMenuItem key={item.title}>

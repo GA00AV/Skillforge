@@ -19,7 +19,6 @@ model User{
   email String @unique
   password String
   profileImg String @default("https://picsum.photos/200")
-  notifications Notification[]
   enrolledCourses Course[] @relation("enrollments")
   createdCourses Course[] @relation("instructor")
 }
@@ -55,12 +54,3 @@ model Lecture {
   section Section @relation(fields: [sectionID], references: [id])
 }
 
-model Notification{
-  id String @id @default(uuid())
-  title String 
-  type String
-  message String
-  sentTime DateTime
-  userId String
-  user User @relation(fields: [userId], references: [id])
-}

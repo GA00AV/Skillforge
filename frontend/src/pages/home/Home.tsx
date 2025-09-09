@@ -22,7 +22,7 @@ export default function HomePage() {
                     Explore Courses
                   </Button>
                 </a>
-                <a href="/signup">
+                <a href="/app">
                   <Button
                     size="lg"
                     variant="outline"

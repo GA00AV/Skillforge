@@ -1,3 +1,6 @@
 dist/
 node_modules/
 prisma/migrations/
+.env
+*.mp4
+output/

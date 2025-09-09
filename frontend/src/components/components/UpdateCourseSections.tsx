@@ -19,7 +19,7 @@ import {
   type LectureType,
 } from "@/types/types";
 import { v4 } from "uuid";
-import { useParams } from "react-router";
+import { useNavigate, useNavigation, useParams } from "react-router";
 import { getVideoDuration, getVideoFile, uploadData } from "@/lib/utils";
 import {
   useMutation as useMutationGraphQL,
@@ -43,6 +43,7 @@ export default function UpdateCourseSections({
   activeTab: number;
 }) {
   let params = useParams();
+  let navigate = useNavigate();
 
   const [sections, setSections] = useState<SectionFormType[]>([]);
   const [sectionsErrors, setSectionsErrors] = useState<SectionFormError[]>([]);
@@ -228,7 +229,6 @@ export default function UpdateCourseSections({
         deletedSections: deletedOnes.sections,
         sections: [],
       };
-      let uploadStatusToChange: Record<string, string[]> = {};
       for (const s of sections) {
         let lectures: LectureType[] = [];
         for (const l of s.lectures) {
@@ -257,11 +257,6 @@ export default function UpdateCourseSections({
             if (lec) {
               try {
                 await uploadData(lecture.url, lec.video);
-                if (uploadStatusToChange[sec.sectionId]) {
-                  uploadStatusToChange[sec.sectionId].push(lec.id);
-                } else {
-                  uploadStatusToChange[sec.sectionId] = [lec.id];
-                }
               } catch {
                 continue;
               }
@@ -269,29 +264,7 @@ export default function UpdateCourseSections({
           }
         }
       }
-      const newSections: SectionFormType[] = [];
-      for (const section of sections) {
-        if (Object.keys(uploadStatusToChange).includes(section.id)) {
-          let lectures: {
-            id: string;
-            title: string;
-            description: string;
-            video: null | File;
-            upload: boolean;
-          }[] = [];
-          for (const lec of section.lectures) {
-            if (uploadStatusToChange[section.id].includes(lec.id)) {
-              lectures.push({ ...lec, upload: false });
-            } else {
-              lectures.push(lec);
-            }
-          }
-          newSections.push({ ...section, lectures: lectures });
-        } else {
-          newSections.push(section);
-        }
-      }
-      setSections(newSections);
+      navigate("/app/my-courses");
     }
   }
 

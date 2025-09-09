@@ -84,13 +84,13 @@ export function Navbar() {
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent className="w-56" align="end" forceMount>
-                  <Link to="/app">
+                  <Link to="/app/my-courses">
                     <DropdownMenuItem>
                       <LayoutDashboardIcon className="mr-2 h-4 w-4 text-gray-900" />
-                      <span>Dashboard</span>
+                      <span>My Courses</span>
                     </DropdownMenuItem>
                   </Link>
-                  <Link to="/app/learn">
+                  <Link to="/app">
                     <DropdownMenuItem>
                       <BookCheckIcon className="mr-2 h-4 w-4 text-gray-900" />
                       <span>My Learning</span>

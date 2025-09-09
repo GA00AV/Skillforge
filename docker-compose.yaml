@@ -75,6 +75,25 @@ services:
       - rabbitmq_data:/var/lib/rabbitmq
       - rabbitmq_logs:/var/log/rabbitmq
 
+  videoprocessor:
+    build: ./video-processor/
+    image: videoprocessor
+    container_name: videoprocessor
+    environment:
+      DATABASE_URL: "postgresql://postgres:12345678@database:5432/skillforge"
+      EXCHANGE: "minio_exchange"
+      ROUTING_KEY: "minio_routing"
+      PRODUCTION_BUCKET: "production"
+      STORAGE_SERVER: "http://minio:9000"
+      AMQP_URL: "amqp://guest:guest@rabbitmq:5672"
+      PUBLIC_STORAGE_URL: "http://localhost:9000"
+      STORAGE_ID: "minioadmin"
+      STORAGE_PASSWORD: "minioadmin"
+    depends_on:
+      - minio
+      - rabbitmq
+      - database
+
 volumes:
   minio_data:
   db_data:
