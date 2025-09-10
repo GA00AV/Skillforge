@@ -1,4 +1,9 @@
-import { GetObjectCommand, PutObjectCommand } from "@aws-sdk/client-s3";
+import {
+  DeleteObjectsCommand,
+  GetObjectCommand,
+  ListObjectsV2Command,
+  PutObjectCommand,
+} from "@aws-sdk/client-s3";
 import Ffmpeg from "fluent-ffmpeg";
 import fs from "fs";
 import { s3client } from "./lib/s3Client";
@@ -121,6 +126,27 @@ export async function processMessage(
       await convertVideoToSegments(outputFilename480, "output/480p");
       await convertVideoToSegments(outputFilename720, "output/720p");
       createMasterVideoFile("output");
+      // delete old lec if exists on server
+      const response = await s3client.send(
+        new ListObjectsV2Command({
+          Bucket: outputBucket,
+          Prefix: `${instructor}/${courseid}/${sectionid}/${lectureid}/`,
+        })
+      );
+      const lectureContets = response.Contents?.filter((obj) =>
+        obj.Key?.includes(
+          `${instructor}/${courseid}/${sectionid}/${lectureid}/`
+        )
+      );
+      const keys = lectureContets?.map((obj) => ({ Key: obj.Key }));
+      if (keys) {
+        await s3client.send(
+          new DeleteObjectsCommand({
+            Bucket: outputBucket,
+            Delete: { Objects: keys },
+          })
+        );
+      }
 
       // upload files to server
       const files = fs.readdirSync("output", { withFileTypes: true });

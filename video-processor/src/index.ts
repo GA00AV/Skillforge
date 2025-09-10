@@ -11,31 +11,44 @@ const proudctionBucket = process.env.PRODUCTION_BUCKET || "production";
 const storageServerUrl =
   process.env.PUBLIC_STORAGE_URL || "http://localhost:9000";
 async function main() {
-  const connection = await amqp.connect(AMQP_URL);
-  const channel = await connection.createChannel();
-  await channel.assertExchange(EXCHANGE, "fanout", { durable: false });
-  await channel.assertQueue(QUEUE);
-  await channel.bindQueue(QUEUE, EXCHANGE, ROUTING_KEY);
-  console.log("waiting for message");
-  channel.consume(QUEUE, async (message) => {
-    if (message?.content) {
-      const JsonMsg = JSON.parse(message.content.toString());
-      if (JsonMsg.EventName === "s3:ObjectCreated:Put") {
-        const info = `${JsonMsg.Key}`.split("/");
-        console.log(`Processing video for key:${info.slice(1).join("/")}`);
-        channel.ack(message);
-        await processMessage(
-          info.slice(1).join("/"),
-          info[0],
-          proudctionBucket,
-          info[1],
-          info[2],
-          info[3],
-          info[4].split(".")[0],
-          storageServerUrl
-        );
+  try {
+    const connection = await amqp.connect(AMQP_URL);
+    connection.on("close", () => {
+      console.warn("[AMQP] connection closed. Reconnecting...");
+      return setTimeout(main, 5000);
+    });
+    const channel = await connection.createChannel();
+    await channel.assertExchange(EXCHANGE, "fanout", { durable: false });
+    await channel.assertQueue(QUEUE);
+    await channel.bindQueue(QUEUE, EXCHANGE, ROUTING_KEY);
+    console.log("waiting for message");
+    channel.consume(QUEUE, async (message) => {
+      if (message?.content) {
+        const JsonMsg = JSON.parse(message.content.toString());
+        if (JsonMsg.EventName === "s3:ObjectCreated:Put") {
+          const info = `${JsonMsg.Key}`.split("/");
+          console.log(`Processing video for key:${info.slice(1).join("/")}`);
+          channel.ack(message);
+          try {
+            await processMessage(
+              info.slice(1).join("/"),
+              info[0],
+              proudctionBucket,
+              info[1],
+              info[2],
+              info[3],
+              info[4].split(".")[0],
+              storageServerUrl
+            );
+          } catch (error) {
+            console.error(error);
+          }
+        }
       }
-    }
-  });
+    });
+  } catch (error) {
+    console.error("[AMQP] failed to connect:", error);
+    setTimeout(main, 5000);
+  }
 }
 main();
