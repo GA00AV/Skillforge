@@ -120,7 +120,7 @@ export default function SearchPage() {
           <h1 className="text-3xl font-bold text-gray-900 mb-4">
             Find Your Perfect Course
           </h1>
-          <form className="flex flex-col md:flex-row gap-4">
+          {/* <form className="flex flex-col md:flex-row gap-4">
             <div className="relative flex-1">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
               <Input
@@ -137,12 +137,12 @@ export default function SearchPage() {
             >
               Search
             </Button>
-          </form>
+          </form> */}
         </div>
 
         <div className="flex flex-col lg:flex-row gap-8">
           {/* Filters Sidebar */}
-          <div className="lg:w-64 space-y-6">
+          {/* <div className="lg:w-64 space-y-6">
             <Card className="border-gray-200">
               <CardHeader>
                 <h3 className="font-semibold text-gray-900 flex items-center">
@@ -151,7 +151,6 @@ export default function SearchPage() {
                 </h3>
               </CardHeader>
               <CardContent className="space-y-6">
-                {/* Category Filter */}
                 <div>
                   <h4 className="font-medium text-gray-900 mb-3">Category</h4>
                   <Select
@@ -174,8 +173,6 @@ export default function SearchPage() {
                     </SelectContent>
                   </Select>
                 </div>
-
-                {/* Price Filter */}
                 <div>
                   <h4 className="font-medium text-gray-900 mb-3">Price</h4>
                   <Select value={priceRange} onValueChange={setPriceRange}>
@@ -192,7 +189,6 @@ export default function SearchPage() {
                   </Select>
                 </div>
 
-                {/* Rating Filter */}
                 <div>
                   <h4 className="font-medium text-gray-900 mb-3">Rating</h4>
                   <div className="space-y-2">
@@ -212,7 +208,7 @@ export default function SearchPage() {
                 </div>
               </CardContent>
             </Card>
-          </div>
+          </div> */}
 
           {/* Course Results */}
           <div className="flex-1">
@@ -234,7 +230,7 @@ export default function SearchPage() {
                       </Badge>
                     </div>
                   </CardHeader>
-                  <CardContent className="p-4">
+                  <CardContent className="py-0 px-4">
                     <h3 className="font-semibold text-gray-900 mb-2 line-clamp-2">
                       {course.title}
                     </h3>
@@ -242,7 +238,7 @@ export default function SearchPage() {
                       {course.instructor}
                     </p>
 
-                    <div className="flex items-center gap-4 text-sm text-gray-600 mb-3">
+                    {/* <div className="flex items-center gap-4 text-sm text-gray-600 mb-3">
                       <div className="flex items-center gap-1">
                         <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
                         <span>{course.rating}</span>
@@ -255,13 +251,13 @@ export default function SearchPage() {
                         <Clock className="w-4 h-4" />
                         <span>{course.duration}</span>
                       </div>
-                    </div>
+                    </div> */}
                   </CardContent>
                   <CardFooter className="p-4 pt-0">
                     <div className="flex items-center justify-between w-full">
                       <div className="flex items-center gap-2">
                         <span className="text-lg font-bold text-gray-900">
-                          ${course.price}
+                          ₹{course.price}
                         </span>
                       </div>
                       <a href={`/course/${course.id}`}>

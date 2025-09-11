@@ -30,7 +30,6 @@ model Course{
   thumbnail String?
   lastUpdate DateTime @updatedAt
   price Float?
-  status String
   sections Section[]
   students User[] @relation("enrollments")
   instructorId String

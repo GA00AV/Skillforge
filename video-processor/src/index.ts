@@ -22,13 +22,13 @@ async function main() {
     await channel.assertQueue(QUEUE);
     await channel.bindQueue(QUEUE, EXCHANGE, ROUTING_KEY);
     console.log("waiting for message");
+    channel.prefetch(1);
     channel.consume(QUEUE, async (message) => {
       if (message?.content) {
         const JsonMsg = JSON.parse(message.content.toString());
         if (JsonMsg.EventName === "s3:ObjectCreated:Put") {
           const info = `${JsonMsg.Key}`.split("/");
           console.log(`Processing video for key:${info.slice(1).join("/")}`);
-          channel.ack(message);
           try {
             await processMessage(
               info.slice(1).join("/"),
@@ -40,6 +40,7 @@ async function main() {
               info[4].split(".")[0],
               storageServerUrl
             );
+            channel.ack(message);
           } catch (error) {
             console.error(error);
           }

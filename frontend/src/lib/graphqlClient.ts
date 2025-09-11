@@ -6,7 +6,16 @@ const graphQLclient = new ApolloClient({
   }),
   cache: new InMemoryCache(),
 });
-
+export const GET_MY_COURSES = gql`
+  query coursesByInstructorId($id: String!) {
+    coursesByInstructorId(instructorId: $id) {
+      id
+      title
+      thumbnail
+      price
+    }
+  }
+`;
 const GET_BASIC_COURSEINFO = gql`
   query GetBasicCourseInfo($id: String!) {
     course(id: $id) {

@@ -11,8 +11,7 @@ export default function VideoPlayer({ src }: { src: string }) {
       playerRef.current = videojs(videoRef.current, {
         controls: true,
         autoplay: false,
-        width: 854,
-        height: 480,
+        fluid: true,
         sources: [
           {
             src,
@@ -21,15 +20,9 @@ export default function VideoPlayer({ src }: { src: string }) {
         playbackRates: [0.5, 1, 1.5, 2],
       });
     }
-    return () => {
-      if (playerRef.current) {
-        playerRef.current.dispose();
-        playerRef.current = null;
-      }
-    };
   }, [src]);
   return (
-    <div data-vjs-player>
+    <div style={{ width: "100%" }} data-vjs-player>
       <video ref={videoRef} className="video-js" />
     </div>
   );

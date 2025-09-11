@@ -13,6 +13,15 @@ let Query = {
   course: async (parent: any, payload: { id: string }) => {
     return await CourseService.getCourse(payload.id);
   },
+  coursesByInstructorId: async (
+    parent: any,
+    payload: { instructorId: string }
+  ) => {
+    return await CourseService.getCoursesByInstructorId(payload.instructorId);
+  },
+  coursesByStudentId: async (parent: any, payload: { studentid: string }) => {
+    return await CourseService.getCoursesByStudentId(payload.studentid);
+  },
 };
 let Mutation = {
   updateCourseBasicInfo: async (

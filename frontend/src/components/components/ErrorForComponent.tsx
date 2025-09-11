@@ -4,8 +4,8 @@ export default function ErrorForComponent({
   error,
   name,
 }: {
-  name: string;
-  error: string;
+  name: string | undefined;
+  error: string | undefined;
 }) {
   return (
     <div className="min-h-screen bg-white flex items-center justify-center p-4 w-fll">

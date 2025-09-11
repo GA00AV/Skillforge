@@ -8,20 +8,30 @@ export type BasicCourseReturn = {
     title: string;
   };
 };
-export type CourseSectionsReturn = {
-  course: {
-    sections: {
-      id: string;
-      title: string;
-      lectures: {
-        id: string;
-        title: string;
-        description: string;
-        src: string;
-      }[];
-    }[];
-  };
+export type MyCoursesReturnType = {
+  coursesByInstructorId: {
+    id: string;
+    price: number;
+    thumbnail: string;
+    title: string;
+  }[];
 };
+export interface SectionType {
+  id: string;
+  title: string;
+  lectures: {
+    id: string;
+    title: string;
+    description: string;
+    duration: number;
+    src: string;
+  }[];
+}
+export interface CourseSectionsReturn {
+  course: {
+    sections: SectionType[];
+  };
+}
 
 export type ThumbnailUploadUrl = {
   updateCourseBasicInfo: {

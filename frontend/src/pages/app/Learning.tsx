@@ -72,28 +72,6 @@ export default function MyLearningPage() {
     },
   ]);
 
-  const getStatusBadge = (status: string) => {
-    switch (status) {
-      case "completed":
-        return <Badge className="bg-green-100 text-green-800">Completed</Badge>;
-      case "in-progress":
-        return <Badge className="bg-blue-100 text-blue-800">In Progress</Badge>;
-      case "not-started":
-        return <Badge className="bg-gray-100 text-gray-800">Not Started</Badge>;
-      default:
-        return <Badge variant="outline">{status}</Badge>;
-    }
-  };
-
-  const handleOpenReviewDialog = (courseId: number) => {
-    const course = courses.find((c) => c.id === courseId);
-    if (course) {
-      setCourseToReview(courseId);
-      setReviewText(course.userReview || "");
-      setCurrentRating(course.userRating || 0);
-    }
-  };
-
   const handleSubmitReview = () => {
     if (courseToReview !== null) {
       setCourses((prevCourses) =>
@@ -182,32 +160,6 @@ export default function MyLearningPage() {
                   alt={course.title}
                   className="w-full h-32 object-cover rounded-t-lg"
                 />
-                <div className="absolute top-3 left-3">
-                  {getStatusBadge(course.status)}
-                </div>
-                <div className="absolute top-3 right-3">
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        className="bg-white/80 hover:bg-white"
-                      >
-                        <MoreVertical className="w-4 h-4" />
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end">
-                      <DropdownMenuItem
-                        onClick={() => handleOpenReviewDialog(course.id)}
-                      >
-                        <Star className="w-4 h-4 mr-2" />
-                        {course.userRating > 0
-                          ? "Edit Review"
-                          : "Rate & Review"}
-                      </DropdownMenuItem>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
-                </div>
               </div>
             </CardHeader>
             <CardContent className="p-4">
@@ -216,19 +168,8 @@ export default function MyLearningPage() {
               </h3>
 
               <div className="flex flex-col gap-3 justify-between pt-3 border-t border-gray-100">
-                <div className="flex items-center gap-1">
-                  <span className="text-sm text-gray-600">Your rating:</span>
-                  {[1, 2, 3, 4, 5].map((star) => (
-                    <Star
-                      key={star}
-                      className={`w-4 h-4 cursor-pointer ${
-                        star <= course.userRating
-                          ? "fill-yellow-400 text-yellow-400"
-                          : "text-gray-300"
-                      }`}
-                    />
-                  ))}
-                </div>
+                <span />
+
                 <Link to={`/app/learn/${course.id}`}>
                   <Button
                     size="sm"

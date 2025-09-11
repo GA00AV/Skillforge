@@ -29,7 +29,6 @@ type Course {
     thumbnail: String
     lastUpdate: String!
     price: Int!
-    status: String!
     instructorId: String!
     instructor: User
     sections: [Section]
@@ -83,6 +82,8 @@ input SectionsInput{
 type Query{
     courses: [Course]
     course(id:String!): Course
+    coursesByInstructorId(instructorId:String!): [Course]
+    coursesByStudentId(studentid:String!): [Course]
 }
 
 type Mutation{

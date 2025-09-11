@@ -14,6 +14,14 @@ export default class CourseService {
   public static async getCourses() {
     return await prisma.course.findMany();
   }
+  public static async getCoursesByInstructorId(id: string) {
+    return await prisma.course.findMany({ where: { instructorId: id } });
+  }
+  public static async getCoursesByStudentId(id: string) {
+    return await prisma.course.findMany({
+      where: { students: { some: { id } } },
+    });
+  }
   public static async getCourse(courseId: string) {
     return await prisma.course.findUnique({
       where: { id: courseId },
@@ -43,6 +51,13 @@ export default class CourseService {
       where: { sectionID },
     });
   }
+
+  public static async enrollStudent(courseid: string, studentid: string) {
+    return await prisma.course.update({
+      where: { id: courseid },
+      data: { students: { connect: { id: studentid } } },
+    });
+  }
   public static async updateBasics(payload: CourseInput, userid: string) {
     let course = await prisma.course.findUnique({
       where: { id: payload.id },
@@ -57,7 +72,6 @@ export default class CourseService {
           description: payload.description,
           price: payload.price,
           category: payload.category,
-          status: "DRAFT",
           instructorId: userid,
           thumbnail: `${
             process.env.PUBLIC_STORAGE_URL || "http://localhost:9000"

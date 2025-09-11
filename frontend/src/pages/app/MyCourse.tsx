@@ -1,91 +1,69 @@
-import { useState } from "react";
+import ErrorForComponent from "@/components/components/ErrorForComponent";
+import LoadingScreen from "@/components/components/LoadingScreen";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
-import { Plus, MoreVertical, Edit, BarChart3 } from "lucide-react";
+import { GET_MY_COURSES } from "@/lib/graphqlClient";
+import { type MyCoursesReturnType } from "@/types/types";
+import { useQuery as useQueryGraphQL } from "@apollo/client/react";
+import { useQueryClient } from "@tanstack/react-query";
+import { Plus, Edit } from "lucide-react";
+import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router";
 import { v4 as uuidv4 } from "uuid";
 
 export default function MyCoursesPage() {
+  const queryclient = useQueryClient();
+  const user = queryclient.getQueryData(["User"]) as { user: { id: string } };
+  // const {
+  //   data: user,
+  //   isError,
+  //   isLoading,
+  //   error: getUserError,
+  // } = useUserQuery();
+
+  const [courses, setCourses] = useState<
+    {
+      id: string;
+      price: number;
+      thumbnail: string;
+      title: string;
+    }[]
+  >([]);
+  console.log(user.user.id);
+  const { data, loading, error } = useQueryGraphQL<MyCoursesReturnType>(
+    GET_MY_COURSES,
+    { variables: { id: "88768718-fab8-4be8-bfee-2fb8e37d9f66" } }
+  );
+
   const navigate = useNavigate();
-  const [courseToDelete, setCourseToDelete] = useState<number | null>(null);
+  useEffect(() => {
+    if (data?.coursesByInstructorId) {
+      setCourses(data.coursesByInstructorId);
+    }
+  }, [data]);
   function handleCreateCourse() {
     const id = uuidv4();
     navigate(`/app/edit/${id}`);
   }
-  const courses = [
-    {
-      id: 1,
-      title: "JavaScript for Beginners",
-      status: "published",
-      rating: 4.8,
-      reviews: 234,
-      lastUpdated: "2024-01-15",
-      image: "/placeholder.svg?height=120&width=200",
-      price: 89.99,
-    },
-    {
-      id: 2,
-      title: "Node.js Masterclass",
-      status: "published",
-      students: 890,
-      revenue: 1335.75,
-      rating: 4.7,
-      reviews: 156,
-      lastUpdated: "2024-01-10",
-      image: "/placeholder.svg?height=120&width=200",
-      price: 99.99,
-    },
-    {
-      id: 3,
-      title: "MongoDB Essentials",
-      status: "draft",
-      students: 0,
-      revenue: 0,
-      rating: 0,
-      reviews: 0,
-      lastUpdated: "2024-01-20",
-      image: "/placeholder.svg?height=120&width=200",
-      price: 79.99,
-    },
-    {
-      id: 4,
-      title: "Advanced React Patterns",
-      status: "processing",
-      lastUpdated: "2024-01-18",
-      image: "/placeholder.svg?height=120&width=200",
-      price: 129.99,
-    },
-  ];
-
-  const getStatusBadge = (status: string) => {
-    switch (status) {
-      case "PUBLISHED":
-        return <Badge className="bg-green-100 text-green-800">Published</Badge>;
-      case "DRAFT":
-        return <Badge className="bg-gray-100 text-gray-800">Draft</Badge>;
-      case "PROCESSING":
-        return (
-          <Badge className="bg-yellow-100 text-yellow-800">Under Review</Badge>
-        );
-      default:
-        return <Badge variant="outline">{status}</Badge>;
-    }
-  };
+  if (loading) {
+    console.log("loading data");
+    return <LoadingScreen />;
+  }
+  if (error) {
+    return <ErrorForComponent name={error.name} error={error.message} />;
+  }
+  // if (isLoading) {
+  //   console.log("loading user");
+  //   return <LoadingScreen />;
+  // }
+  // if (isError) {
+  //   return (
+  //     <ErrorForComponent
+  //       name={getUserError?.name}
+  //       error={getUserError?.message}
+  //     />
+  //   );
+  // }
 
   return (
     <div className="p-6 space-y-6">
@@ -115,58 +93,21 @@ export default function MyCoursesPage() {
             <CardHeader className="p-0">
               <div className="relative">
                 <img
-                  src={course.image || "/placeholder.svg"}
+                  src={course.thumbnail || "/placeholder.svg"}
                   alt={course.title}
                   className="w-full h-32 object-cover rounded-t-lg"
                 />
-                <div className="absolute top-3 left-3">
-                  {getStatusBadge(course.status)}
-                </div>
-                <div className="absolute top-3 right-3">
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        className="bg-white/80 hover:bg-white"
-                      >
-                        <MoreVertical className="w-4 h-4" />
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end">
-                      <DropdownMenuItem>
-                        <Edit className="w-4 h-4 mr-2" />
-                        Edit
-                      </DropdownMenuItem>
-                      <DropdownMenuItem>
-                        <BarChart3 className="w-4 h-4 mr-2" />
-                        Analytics
-                      </DropdownMenuItem>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
-                </div>
               </div>
             </CardHeader>
             <CardContent className="p-4">
               <h3 className="font-semibold text-gray-900 mb-2 line-clamp-2">
-                {course.title}
+                <Link to={`/course/${course.id}`}>{course.title}</Link>
               </h3>
-              <p className="text-sm text-gray-600 mb-3">${course.price}</p>
+              <p className="text-sm text-gray-600 mb-3">₹{course.price}</p>
 
               <div className="pt-3 border-t border-gray-100">
                 <div className="flex items-center justify-between">
-                  <Link to={`/app/analytics/${course.id}`}>
-                    {course.status === "published" && (
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        className="border-gray-300 bg-transparent"
-                      >
-                        <BarChart3 className="w-3 h-3 mr-1" />
-                        Analytics
-                      </Button>
-                    )}
-                  </Link>
+                  <span />
                   <Link to={`/app/edit/${course.id}`}>
                     <Button
                       size="sm"
@@ -202,27 +143,6 @@ export default function MyCoursesPage() {
           </CardContent>
         </Card>
       )}
-
-      {/* Delete Confirmation Dialog */}
-      <Dialog
-        open={courseToDelete !== null}
-        onOpenChange={() => setCourseToDelete(null)}
-      >
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Delete Course</DialogTitle>
-            <DialogDescription>
-              Are you sure you want to delete this course? This action cannot be
-              undone and will remove all associated data.
-            </DialogDescription>
-          </DialogHeader>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setCourseToDelete(null)}>
-              Cancel
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
     </div>
   );
 }
