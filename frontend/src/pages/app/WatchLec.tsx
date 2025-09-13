@@ -1,26 +1,7 @@
-import { useState, useRef, useEffect } from "react";
-import { Button } from "@/components/ui/button";
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import {
-  Play,
-  Pause,
-  Volume2,
-  VolumeX,
-  Maximize,
-  SkipBack,
-  SkipForward,
-  Settings,
-  ChevronDown,
-  ChevronRight,
-  Video,
-} from "lucide-react";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+import { Play, ChevronDown, ChevronRight } from "lucide-react";
 import VideoPlayer from "@/components/components/VideoPlayer";
 import { useQuery as useQueryGraphQL } from "@apollo/client/react";
 import { GET_COURSE_SECTIONS } from "@/lib/graphqlClient";
@@ -84,14 +65,14 @@ export default function WatchCoursePage() {
       </div>
     );
   }
-
+  console.log(sections);
   return (
     <div className="flex h-screen bg-gray-50">
       {/* Main Content */}
       <div className="flex-1 flex flex-col">
         {/* Video Player */}
         <div className="bg-black relative group">
-          <VideoPlayer src="http://localhost:9000/production/88768718-fab8-4be8-bfee-2fb8e37d9f66/1d78f3de-e218-4ad7-bfde-89cab36bc2bc/d542584a-2211-4bc5-aa32-68a86fb8b1a1/42c183db-4c67-4e46-b623-7e8d53e95027/master.m3u8" />
+          <VideoPlayer src={currentLesson?.src ?? ""} />
         </div>
 
         {/* Course Info & Tabs */}
@@ -148,35 +129,39 @@ export default function WatchCoursePage() {
 
                 {expandedSections.includes(section.id) && (
                   <div className="border-t border-gray-200">
-                    {section.lectures.map((lesson) => (
-                      <div
-                        key={lesson.id}
-                        className={`p-3 border-b border-gray-100 last:border-b-0 flex items-center space-x-3 hover:bg-gray-50 cursor-pointer ${
-                          lesson.id === currentLesson?.id
-                            ? "bg-blue-50 border-l-4 border-l-blue-600"
-                            : ""
-                        }`}
-                        onClick={() => setCurrentLesson(lesson)}
-                      >
-                        <div className="flex-shrink-0">
-                          <Play className="w-4 h-4 text-gray-400" />
+                    {section.lectures.map((lesson) =>
+                      lesson.src ? (
+                        <div
+                          key={lesson.id}
+                          className={`p-3 border-b border-gray-100 last:border-b-0 flex items-center space-x-3 hover:bg-gray-50 cursor-pointer ${
+                            lesson.id === currentLesson?.id
+                              ? "bg-blue-50 border-l-4 border-l-blue-600"
+                              : ""
+                          }`}
+                          onClick={() => setCurrentLesson(lesson)}
+                        >
+                          <div className="flex-shrink-0">
+                            <Play className="w-4 h-4 text-gray-400" />
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <p
+                              className={`text-sm font-medium truncate ${
+                                lesson.id === currentLesson?.id
+                                  ? "text-blue-900"
+                                  : "text-gray-900"
+                              }`}
+                            >
+                              {lesson.title}
+                            </p>
+                            <p className="text-xs text-gray-500">
+                              {lesson.duration}
+                            </p>
+                          </div>
                         </div>
-                        <div className="flex-1 min-w-0">
-                          <p
-                            className={`text-sm font-medium truncate ${
-                              lesson.id === currentLesson?.id
-                                ? "text-blue-900"
-                                : "text-gray-900"
-                            }`}
-                          >
-                            {lesson.title}
-                          </p>
-                          <p className="text-xs text-gray-500">
-                            {lesson.duration}
-                          </p>
-                        </div>
-                      </div>
-                    ))}
+                      ) : (
+                        ""
+                      )
+                    )}
                   </div>
                 )}
               </div>

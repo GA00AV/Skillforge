@@ -51,12 +51,24 @@ export default class CourseService {
       where: { sectionID },
     });
   }
+  public static async coursesBySearch(query: string) {
+    return await prisma.course.findMany({
+      where: { title: { contains: query } },
+    });
+  }
 
   public static async enrollStudent(courseid: string, studentid: string) {
-    return await prisma.course.update({
+    let data = await prisma.course.update({
       where: { id: courseid },
       data: { students: { connect: { id: studentid } } },
     });
+    return Boolean(data);
+  }
+  public static async isEnrolled(courseid: string, studentid: string) {
+    let data = await prisma.course.findUnique({
+      where: { id: courseid, students: { some: { id: studentid } } },
+    });
+    return Boolean(data);
   }
   public static async updateBasics(payload: CourseInput, userid: string) {
     let course = await prisma.course.findUnique({

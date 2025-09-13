@@ -35,26 +35,15 @@ export async function uploadData(url: string, data: any) {
   }
 }
 
-export function getVideoDuration(file: string | null | File): Promise<number> {
-  if (typeof file === "string") {
-    return new Promise((resolve, reject) => {
-      const video = document.createElement("video");
-      video.src = file;
-      video.onloadedmetadata = () => resolve(video.duration);
-
-      video.onerror = (e) => reject(e.toString());
-    });
-  }
-  if (typeof file === "object") {
-    return new Promise((resolve, reject) => {
-      const video = document.createElement("video");
-      video.src = URL.createObjectURL(file as File);
-      video.onloadedmetadata = () => resolve(video.duration);
-
-      video.onerror = (e) => reject(e.toString());
-    });
-  }
-  return new Promise((resolve) => resolve(0));
+export function getVideoDuration(file: File | null): Promise<number> {
+  return new Promise((resolve, reject) => {
+    const video = document.createElement("video");
+    video.src = URL.createObjectURL(file as File);
+    video.onloadedmetadata = () => resolve(video.duration);
+    video.onerror = (e) => {
+      return reject(e.valueOf());
+    };
+  });
 }
 export async function getVideoFile(url: string, filename: string) {
   try {

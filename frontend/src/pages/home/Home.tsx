@@ -1,4 +1,5 @@
 import { Button } from "@/components/ui/button";
+import { Link } from "react-router";
 
 export default function HomePage() {
   return (
@@ -17,12 +18,12 @@ export default function HomePage() {
                 instructors.
               </p>
               <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                <a href="/search">
+                <Link to="/search">
                   <Button className="bg-gray-900 hover:bg-gray-800 text-white px-8 py-5.5 rounded-sm">
                     Explore Courses
                   </Button>
-                </a>
-                <a href="/app">
+                </Link>
+                <Link to="/app">
                   <Button
                     size="lg"
                     variant="outline"
@@ -30,7 +31,7 @@ export default function HomePage() {
                   >
                     Start Learning Today
                   </Button>
-                </a>
+                </Link>
               </div>
             </div>
           </div>
@@ -70,14 +71,14 @@ export default function HomePage() {
               Join thousands of students already learning on Skill Forge. Start
               your journey today with our expert-led courses.
             </p>
-            <a href="/signup">
+            <Link to="/signup">
               <Button
                 size="lg"
                 className="bg-white text-gray-900 hover:bg-gray-100 px-8 rounded-sm py-5.5"
               >
                 Get Started Now
               </Button>
-            </a>
+            </Link>
           </div>
         </section>
       </div>

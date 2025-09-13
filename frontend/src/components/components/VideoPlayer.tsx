@@ -1,6 +1,6 @@
 import { useEffect, useRef } from "react";
 import videojs from "video.js";
-import Player from "video.js/dist/types/player";
+import type Player from "video.js/dist/types/player";
 import "video.js/dist/video-js.css";
 
 export default function VideoPlayer({ src }: { src: string }) {
@@ -19,6 +19,9 @@ export default function VideoPlayer({ src }: { src: string }) {
         ],
         playbackRates: [0.5, 1, 1.5, 2],
       });
+    } else if (playerRef.current) {
+      playerRef.current.src({ src });
+      playerRef.current.load();
     }
   }, [src]);
   return (

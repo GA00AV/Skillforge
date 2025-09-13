@@ -16,11 +16,23 @@ services:
       REDIS_URL: "redis://redis:6379"
       TEMP_VIDEO_BUCKET: "tempvideo"
       PRODUCTION_BUCKET: "production"
+      FRONTEND_URL: "http://localhost"
     depends_on:
       - database
       - redis
       - minio
       - rabbitmq
+  frontend:
+    build: ./frontend/
+    image: skillforgefrontend
+    container_name: frontend
+    ports:
+      - 80:80
+    environment:
+      VITE_API_URL: "http://localhost:3000"
+    depends_on:
+      - backend
+
   database:
     image: postgres
     container_name: postgres

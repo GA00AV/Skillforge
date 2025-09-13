@@ -5,6 +5,7 @@ import { prisma } from "../lib/prisma.js";
 import { compare, hash } from "bcrypt";
 import { randomUUID } from "crypto";
 import { AuthRequest } from "../middlewares.js";
+import CourseService from "../graphql/services/Course.js";
 
 const handler = Router();
 
@@ -141,5 +142,16 @@ handler.post("/signout", async (req: AuthRequest, res) => {
 
 handler.get("/user", (req: AuthRequest, res) => {
   res.json({ user: req.user });
+});
+handler.post("/isEnrolled", async (req, res) => {
+  if (req.body.courseID && req.body.studentID) {
+    return res.json({
+      success: await CourseService.isEnrolled(
+        req.body.courseID,
+        req.body.studentID
+      ),
+    });
+  }
+  return res.sendStatus(402);
 });
 export { handler };

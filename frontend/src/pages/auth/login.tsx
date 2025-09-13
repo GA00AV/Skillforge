@@ -14,9 +14,10 @@ import { AlertCircle } from "lucide-react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Link, useNavigate } from "react-router";
 import { toast } from "sonner";
+const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3000";
 
 async function submitLogin(data: any) {
-  let response = await fetch("http://localhost:3000/login", {
+  let response = await fetch(`${API_URL}/login`, {
     method: "POST",
     body: JSON.stringify(data),
     headers: {

@@ -21,13 +21,13 @@ import { Link } from "react-router";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { logout } from "@/lib/utils";
 import useUserQuery from "@/hooks/useUserQuery";
-
+const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3000";
 export function Navbar() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const { isLoading, isError, data } = useUserQuery();
   const queryclient = useQueryClient();
   const logoutMutator = useMutation({
-    mutationFn: () => logout("http://localhost:3000/signout"),
+    mutationFn: () => logout(`${API_URL}/signout`),
     onError: () => {
       queryclient.invalidateQueries({ queryKey: ["User"] });
     },

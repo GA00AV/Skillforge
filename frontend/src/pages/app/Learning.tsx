@@ -1,139 +1,47 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
-import { Plus, MoreVertical, Star, Play } from "lucide-react";
+import { Plus, Play } from "lucide-react";
 // import { useToast } from "@/hooks/use-toast";
-import { Textarea } from "@/components/ui/textarea";
 import { Link } from "react-router";
+import { useQuery as useQueryGraphQL } from "@apollo/client/react";
+import { useQueryClient } from "@tanstack/react-query";
+import LoadingScreen from "@/components/components/LoadingScreen";
+import ErrorForComponent from "@/components/components/ErrorForComponent";
+import { GET_ENROLLED_COURSES } from "@/lib/graphqlClient";
 
 export default function MyLearningPage() {
-  const [searchQuery] = useState("");
-  const [filterStatus] = useState("all");
-  const [courseToReview, setCourseToReview] = useState<number | null>(null);
-  const [reviewText, setReviewText] = useState("");
-  const [currentRating, setCurrentRating] = useState(0);
-  //   const { toast } = useToast();
+  const queryclient = useQueryClient();
+  const user = queryclient.getQueryData(["User"]) as { user: { id: string } };
+  const [courses, setCourses] = useState<
+    {
+      id: string;
+      price: number;
+      thumbnail: string;
+      title: string;
+    }[]
+  >([]);
+  const { data, loading, error } = useQueryGraphQL<{
+    coursesByStudentId: {
+      id: string;
+      price: number;
+      thumbnail: string;
+      title: string;
+    }[];
+  }>(GET_ENROLLED_COURSES, { variables: { id: user.user.id } });
 
-  const [courses, setCourses] = useState([
-    {
-      id: 1,
-      title: "JavaScript for Beginners",
-      status: "in-progress", // Can be 'completed', 'in-progress', 'not-started'
-      progress: 75,
-      lastAccessed: "2024-02-20",
-      image: "/placeholder.svg?height=120&width=200&text=JavaScript",
-      userRating: 4, // User's rating for this course
-      userReview: "Great course, very comprehensive!",
-    },
-    {
-      id: 2,
-      title: "Node.js Masterclass",
-      status: "completed",
-      progress: 100,
-      lastAccessed: "2024-01-10",
-      image: "/placeholder.svg?height=120&width=200&text=Node.js",
-      userRating: 5,
-      userReview: "Absolutely fantastic! Learned so much.",
-    },
-    {
-      id: 3,
-      title: "MongoDB Essentials",
-      status: "not-started",
-      progress: 0,
-      lastAccessed: "2024-01-25",
-      image: "/placeholder.svg?height=120&width=200&text=MongoDB",
-      userRating: 0,
-      userReview: "",
-    },
-    {
-      id: 4,
-      title: "Advanced React Patterns",
-      status: "in-progress",
-      progress: 30,
-      lastAccessed: "2024-02-18",
-      image: "/placeholder.svg?height=120&width=200&text=React",
-      userRating: 0,
-      userReview: "",
-    },
-  ]);
-
-  const handleSubmitReview = () => {
-    if (courseToReview !== null) {
-      setCourses((prevCourses) =>
-        prevCourses.map((course) =>
-          course.id === courseToReview
-            ? { ...course, userReview: reviewText, userRating: currentRating }
-            : course
-        )
-      );
-      //   toast({
-      //     title: "Review Submitted!",
-      //     description: "Your course review and rating have been saved.",
-      //   });
-      setCourseToReview(null);
-      setReviewText("");
-      setCurrentRating(0);
+  useEffect(() => {
+    if (data?.coursesByStudentId) {
+      setCourses(data.coursesByStudentId);
     }
-  };
+  }, [data]);
 
-  const handleStarClick = (rating: number, courseId?: number) => {
-    if (courseId) {
-      // Quick rating from card
-      setCourses((prevCourses) =>
-        prevCourses.map((course) =>
-          course.id === courseId ? { ...course, userRating: rating } : course
-        )
-      );
-      //   toast({
-      //     title: "Rating Updated!",
-      //     description: `You rated this course ${rating} stars.`,
-      //   });
-    } else {
-      // Rating in dialog
-      setCurrentRating(rating);
-    }
-  };
-
-  const filteredCourses = courses.filter((course) => {
-    const matchesSearch = course.title
-      .toLowerCase()
-      .includes(searchQuery.toLowerCase());
-    const matchesFilter =
-      filterStatus === "all" || course.status === filterStatus;
-    return matchesSearch && matchesFilter;
-  });
-
-  const getRatingLabel = (rating: number) => {
-    switch (rating) {
-      case 1:
-        return "Poor";
-      case 2:
-        return "Fair";
-      case 3:
-        return "Good";
-      case 4:
-        return "Very Good";
-      case 5:
-        return "Excellent";
-      default:
-        return "";
-    }
-  };
+  if (loading) {
+    return <LoadingScreen />;
+  }
+  if (error) {
+    return <ErrorForComponent name={error.name} error={error.message} />;
+  }
 
   return (
     <div className="p-6 space-y-6">
@@ -148,7 +56,7 @@ export default function MyLearningPage() {
 
       {/* Course Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {filteredCourses.map((course) => (
+        {courses.map((course) => (
           <Card
             key={course.id}
             className="border-gray-200 hover:shadow-lg transition-shadow py-0"
@@ -156,7 +64,7 @@ export default function MyLearningPage() {
             <CardHeader className="p-0">
               <div className="relative">
                 <img
-                  src={course.image || "/placeholder.svg"}
+                  src={course.thumbnail}
                   alt={course.title}
                   className="w-full h-32 object-cover rounded-t-lg"
                 />
@@ -185,7 +93,7 @@ export default function MyLearningPage() {
         ))}
       </div>
 
-      {filteredCourses.length === 0 && (
+      {courses.length === 0 && (
         <Card className="border-gray-200">
           <CardContent className="text-center py-12">
             <div className="text-gray-400 mb-4">
@@ -206,69 +114,6 @@ export default function MyLearningPage() {
           </CardContent>
         </Card>
       )}
-
-      {/* Review Dialog */}
-      <Dialog
-        open={courseToReview !== null}
-        onOpenChange={() => setCourseToReview(null)}
-      >
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Rate & Review Course</DialogTitle>
-            <DialogDescription>
-              Share your experience with "
-              {courses.find((c) => c.id === courseToReview)?.title}".
-            </DialogDescription>
-          </DialogHeader>
-          <div className="space-y-4">
-            <div>
-              <h4 className="font-medium text-gray-900 mb-2">Your Rating:</h4>
-              <div className="flex items-center gap-1">
-                {[1, 2, 3, 4, 5].map((star) => (
-                  <Star
-                    key={star}
-                    className={`w-6 h-6 cursor-pointer ${
-                      star <= currentRating
-                        ? "fill-yellow-400 text-yellow-400"
-                        : "text-gray-300"
-                    }`}
-                    onClick={() => handleStarClick(star)}
-                  />
-                ))}
-                {currentRating > 0 && (
-                  <span className="ml-2 text-sm text-gray-600">
-                    ({getRatingLabel(currentRating)})
-                  </span>
-                )}
-              </div>
-            </div>
-            <div>
-              <h4 className="font-medium text-gray-900 mb-2">Your Review:</h4>
-              <Textarea
-                placeholder="Write your review here (max 500 characters)..."
-                value={reviewText}
-                onChange={(e) => setReviewText(e.target.value)}
-                maxLength={500}
-                rows={5}
-              />
-              <p className="text-xs text-gray-500 text-right mt-1">
-                {reviewText.length} / 500 characters
-              </p>
-            </div>
-          </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setCourseToReview(null)}>
-              Cancel
-            </Button>
-            <Button
-              onClick={handleSubmitReview}
-              disabled={currentRating === 0 && reviewText.trim() === ""}
-            >
-              Submit Review
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
     </div>
   );
 }

@@ -16,6 +16,18 @@ export type MyCoursesReturnType = {
     title: string;
   }[];
 };
+export type SearchedCoursesReturnType = {
+  coursesBySearch: {
+    id: string;
+    thumbnail: string;
+    title: string;
+    price: number;
+    category: string;
+    instructor: {
+      name: string;
+    };
+  }[];
+};
 export interface SectionType {
   id: string;
   title: string;
@@ -56,6 +68,7 @@ export type SectionFormType = {
     description: string;
     video: null | File;
     upload: boolean;
+    duration: number;
   }[];
 };
 export type SectionFormError = {
@@ -85,4 +98,28 @@ export type LectureType = {
   description: string;
   duration: number;
   upload: boolean;
+};
+export type CourseDetailInfoReturn = {
+  course: Course;
+};
+export type Course = {
+  id: string;
+  thumbnail: string;
+  title: string;
+  description: string;
+  category: string;
+  price: number;
+  instructor: {
+    name: string;
+    profileImg: string;
+  };
+  sections: {
+    id: string;
+    title: string;
+    lectures: {
+      id: string;
+      title: string;
+      duration: number;
+    }[];
+  }[];
 };

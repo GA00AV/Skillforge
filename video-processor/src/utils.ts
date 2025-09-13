@@ -152,9 +152,6 @@ export async function processMessage(
       const files = fs.readdirSync("output", { withFileTypes: true });
       for (const file of files) {
         if (file.isFile()) {
-          console.log(
-            `Uploading ${instructor}/${courseid}/${sectionid}/${lectureid}/${file.name}`
-          );
           await s3client.send(
             new PutObjectCommand({
               Bucket: outputBucket,
@@ -162,15 +159,11 @@ export async function processMessage(
               Body: fs.readFileSync(`output/${file.name}`),
             })
           );
-          console.log("uploaded");
         } else {
           const innerFiles = fs.readdirSync(`output/${file.name}`, {
             withFileTypes: true,
           });
           for (const innerfile of innerFiles) {
-            console.log(
-              `${instructor}/${courseid}/${sectionid}/${lectureid}/${file.name}/${innerfile.name}`
-            );
             await s3client.send(
               new PutObjectCommand({
                 Bucket: outputBucket,
@@ -178,30 +171,26 @@ export async function processMessage(
                 Body: fs.readFileSync(`output/${file.name}/${innerfile.name}`),
               })
             );
-            console.log("uploaded");
           }
         }
       }
 
       // update src in database
-      console.log("finding lec for updating");
       let lecture = await prisma.lecture.findUnique({
         where: { id: lectureid },
       });
       if (lecture) {
-        console.log("found lecture");
         await prisma.lecture.update({
           where: { id: lecture.id },
           data: {
             src: `${storageServerUrl}/${outputBucket}/${instructor}/${courseid}/${sectionid}/${lectureid}/master.m3u8`,
           },
         });
-        console.log("updated prisma");
       }
 
       // clean up
       fs.rmSync("output", { recursive: true, force: true });
-      console.log("deleted output folder");
+      console.log(`done with lecture: ${lecture?.title}`);
     } else {
       console.error("video isn't found! or not instance of Readable!");
     }

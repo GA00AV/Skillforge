@@ -1,11 +1,5 @@
-import {
-  BookOpen,
-  Home,
-  PlayCircle,
-  MessageSquare,
-  BotMessageSquareIcon,
-} from "lucide-react";
-
+import { BookOpen, Home } from "lucide-react";
+const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3000";
 import {
   Sidebar,
   SidebarContent,
@@ -56,7 +50,7 @@ export function AppSidebar() {
   const { isLoading, isError, data } = useUserQuery();
   const queryclient = useQueryClient();
   const logoutMutator = useMutation({
-    mutationFn: () => logout("http://localhost:3000/signout"),
+    mutationFn: () => logout(`${API_URL}/signout`),
     onError: () => {
       queryclient.invalidateQueries({ queryKey: ["User"] });
     },

@@ -84,9 +84,11 @@ type Query{
     course(id:String!): Course
     coursesByInstructorId(instructorId:String!): [Course]
     coursesByStudentId(studentid:String!): [Course]
+    coursesBySearch(query:String): [Course]
 }
 
 type Mutation{
+    enrollStudent(courseID:String!, studentID:String!):Boolean
     updateCourseBasicInfo(data:CourseInput!): ThumbnailUploadUrl
     updateSections(data:SectionsInput!):UploadFiles
 }

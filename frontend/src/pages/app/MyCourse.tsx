@@ -14,13 +14,6 @@ import { v4 as uuidv4 } from "uuid";
 export default function MyCoursesPage() {
   const queryclient = useQueryClient();
   const user = queryclient.getQueryData(["User"]) as { user: { id: string } };
-  // const {
-  //   data: user,
-  //   isError,
-  //   isLoading,
-  //   error: getUserError,
-  // } = useUserQuery();
-
   const [courses, setCourses] = useState<
     {
       id: string;
@@ -32,7 +25,7 @@ export default function MyCoursesPage() {
   console.log(user.user.id);
   const { data, loading, error } = useQueryGraphQL<MyCoursesReturnType>(
     GET_MY_COURSES,
-    { variables: { id: "88768718-fab8-4be8-bfee-2fb8e37d9f66" } }
+    { variables: { id: user.user.id } }
   );
 
   const navigate = useNavigate();
@@ -52,18 +45,6 @@ export default function MyCoursesPage() {
   if (error) {
     return <ErrorForComponent name={error.name} error={error.message} />;
   }
-  // if (isLoading) {
-  //   console.log("loading user");
-  //   return <LoadingScreen />;
-  // }
-  // if (isError) {
-  //   return (
-  //     <ErrorForComponent
-  //       name={getUserError?.name}
-  //       error={getUserError?.message}
-  //     />
-  //   );
-  // }
 
   return (
     <div className="p-6 space-y-6">

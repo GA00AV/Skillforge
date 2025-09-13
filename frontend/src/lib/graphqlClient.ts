@@ -1,7 +1,9 @@
 import { ApolloClient, gql, HttpLink, InMemoryCache } from "@apollo/client";
-const graphQLclient = new ApolloClient({
+const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3000";
+
+export const graphQLclient = new ApolloClient({
   link: new HttpLink({
-    uri: "http://localhost:3000/course",
+    uri: `${API_URL}/course`,
     credentials: "include",
   }),
   cache: new InMemoryCache(),
@@ -16,7 +18,17 @@ export const GET_MY_COURSES = gql`
     }
   }
 `;
-const GET_BASIC_COURSEINFO = gql`
+export const GET_ENROLLED_COURSES = gql`
+  query coursesByStudentId($id: String!) {
+    coursesByStudentId(studentid: $id) {
+      id
+      title
+      thumbnail
+      price
+    }
+  }
+`;
+export const GET_BASIC_COURSEINFO = gql`
   query GetBasicCourseInfo($id: String!) {
     course(id: $id) {
       id
@@ -28,8 +40,21 @@ const GET_BASIC_COURSEINFO = gql`
     }
   }
 `;
-
-const GET_COURSE_SECTIONS = gql`
+export const GET_SEARCHED_COURSE = gql`
+  query GetSearchedCourse($query: String) {
+    coursesBySearch(query: $query) {
+      id
+      thumbnail
+      title
+      price
+      category
+      instructor {
+        name
+      }
+    }
+  }
+`;
+export const GET_COURSE_SECTIONS = gql`
   query GetSections($id: String!) {
     course(id: $id) {
       sections {
@@ -47,7 +72,7 @@ const GET_COURSE_SECTIONS = gql`
   }
 `;
 
-const UPLOAD_BASIC_COURSEINFO = gql`
+export const UPLOAD_BASIC_COURSEINFO = gql`
   mutation UpdateCourseBasicInfo($data: CourseInput!) {
     updateCourseBasicInfo(data: $data) {
       courseid
@@ -55,7 +80,7 @@ const UPLOAD_BASIC_COURSEINFO = gql`
     }
   }
 `;
-const UPLOAD_COURSE_SECTIONS = gql`
+export const UPLOAD_COURSE_SECTIONS = gql`
   mutation UpdateSections($data: SectionsInput!) {
     updateSections(data: $data) {
       Sections {
@@ -68,10 +93,34 @@ const UPLOAD_COURSE_SECTIONS = gql`
     }
   }
 `;
-export {
-  graphQLclient,
-  GET_BASIC_COURSEINFO,
-  UPLOAD_BASIC_COURSEINFO,
-  GET_COURSE_SECTIONS,
-  UPLOAD_COURSE_SECTIONS,
-};
+export const ENROLL_STUDENT = gql`
+  mutation enrollStudent($courseID: String!, $studentID: String!) {
+    enrollStudent(courseID: $courseID, studentID: $studentID)
+  }
+`;
+
+export const GET_COURSE_INFO = gql`
+  query GETCOURSE($id: String!) {
+    course(id: $id) {
+      id
+      thumbnail
+      title
+      description
+      category
+      price
+      instructor {
+        name
+        profileImg
+      }
+      sections {
+        id
+        title
+        lectures {
+          id
+          title
+          duration
+        }
+      }
+    }
+  }
+`;

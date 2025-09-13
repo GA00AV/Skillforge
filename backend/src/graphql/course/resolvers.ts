@@ -22,6 +22,9 @@ let Query = {
   coursesByStudentId: async (parent: any, payload: { studentid: string }) => {
     return await CourseService.getCoursesByStudentId(payload.studentid);
   },
+  coursesBySearch: async (parent: any, payload: { query: string | null }) => {
+    return await CourseService.coursesBySearch(payload.query ?? "");
+  },
 };
 let Mutation = {
   updateCourseBasicInfo: async (
@@ -57,6 +60,15 @@ let Mutation = {
       throw Error("User isn't logged in!");
     }
     return await CourseService.updateSections(context.user.id, payload.data);
+  },
+  enrollStudent: async (
+    parent: any,
+    payload: { courseID: string; studentID: string }
+  ) => {
+    return await CourseService.enrollStudent(
+      payload.courseID,
+      payload.studentID
+    );
   },
 };
 

@@ -13,9 +13,10 @@ import { AlertCircle } from "lucide-react";
 import { type FormEvent } from "react";
 import { Link, useNavigate } from "react-router";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
+const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3000";
 import { toast } from "sonner";
 async function submitLogin(data: any) {
-  let response = await fetch("http://localhost:3000/signup", {
+  let response = await fetch(`${API_URL}/signup`, {
     method: "POST",
     body: JSON.stringify(data),
     headers: {

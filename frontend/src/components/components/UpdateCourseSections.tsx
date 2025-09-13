@@ -19,7 +19,7 @@ import {
   type LectureType,
 } from "@/types/types";
 import { v4 } from "uuid";
-import { useNavigate, useNavigation, useParams } from "react-router";
+import { useNavigate, useParams } from "react-router";
 import { getVideoDuration, getVideoFile, uploadData } from "@/lib/utils";
 import {
   useMutation as useMutationGraphQL,
@@ -70,6 +70,7 @@ export default function UpdateCourseSections({
                 description: lec.description,
                 upload: false,
                 video: await getVideoFile(lec.src, lec.title),
+                duration: lec.duration,
               });
             }
             sections.push({ id: section.id, title: section.title, lectures });
@@ -104,6 +105,7 @@ export default function UpdateCourseSections({
               description: "",
               video: null,
               upload: true,
+              duration: 0,
             },
           ],
         };
@@ -237,7 +239,9 @@ export default function UpdateCourseSections({
             title: l.title,
             description: l.description,
             upload: l.upload,
-            duration: Math.round(await getVideoDuration(l.video)),
+            duration: l.upload
+              ? Math.round(await getVideoDuration(l.video))
+              : l.duration,
           });
         }
         sectionDataToSend.sections.push({
