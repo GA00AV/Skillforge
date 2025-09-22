@@ -46,21 +46,25 @@ Frontend (React) --> GraphQL API (Express + Apollo) --> PostgreSQL (Prisma ORM)
 * Node.js installed (for local dev if not using Docker)
 
 ### Running the Project
+1. Change git settings to ensure correct file encoding(must for windows):
+```bash
+git config --global core.autocrlf input
+```
 
-1. Clone the repository:
+2. Clone the repository:
 
 ```bash
 git clone https://github.com/GA00AV/Skillforge.git
 cd Skillforge
 ```
 
-2. Start all services using Docker Compose:
+3. Start all services using Docker Compose:
 
 ```bash
 docker-compose up --build
 ```
 
-3. Open the frontend in browser:
+4. Open the frontend in browser:
 
 ```
 http://localhost
